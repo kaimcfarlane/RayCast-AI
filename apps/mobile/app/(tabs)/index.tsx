@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenLayout } from '@/components/screen-layout';
+import { GradientColors, AccentColor } from '@/constants/theme';
 
 export default function HomeScreen() {
   return (
@@ -21,7 +22,7 @@ export default function HomeScreen() {
       <View style={styles.taskGrid}>
         <View style={styles.taskRow}>
           <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: '#7B6FD0' }]}>
+            <View style={[styles.taskIcon, { backgroundColor: AccentColor }]}>
               <Ionicons name="grid" size={28} color="white" />
             </View>
             <Text style={styles.taskLabel}>Chess</Text>
@@ -64,7 +65,7 @@ export default function HomeScreen() {
       </View>
 
       <TouchableOpacity style={styles.startButtonWrap} activeOpacity={0.8}>
-        <LinearGradient colors={['#8B7FD8', '#7B6FD0']} style={styles.startButton}>
+        <LinearGradient colors={GradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButton}>
           <Text style={styles.startButtonText}>Start Session</Text>
         </LinearGradient>
       </TouchableOpacity>

@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, ScrollView, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ReactNode } from 'react';
+import { GradientColors } from '@/constants/theme';
 
 type ScreenLayoutProps = {
   title: string;
@@ -17,7 +18,9 @@ export function ScreenLayout({ title, subtitle, children, headerRight, contentSt
   return (
     <View style={styles.container}>
         <LinearGradient
-          colors={['#8B7FD8', '#7B6FD0']}
+          colors={GradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
           style={[styles.gradientHeader, { paddingTop: insets.top + 24, paddingBottom: 24 }]}
         >
           <View style={styles.headerRow}>

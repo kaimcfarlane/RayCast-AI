@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GradientColors, AccentColor } from '@/constants/theme';
 
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
@@ -14,7 +15,9 @@ export default function WelcomeScreen() {
       <View style={styles.container}>
         {/* Top: Blue-to-purple gradient header only */}
         <LinearGradient
-          colors={['#8B7FD8', '#7B6FD0']}
+          colors={GradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
           style={[styles.gradientHeader, { paddingTop: insets.top + 24, paddingBottom: 32 }]}
         >
           <Text style={styles.title}>Welcome to{'\n'}RayCast AI</Text>
@@ -29,9 +32,14 @@ export default function WelcomeScreen() {
         >
           <View style={styles.featuresList}>
             <View style={styles.featureItem}>
-              <View style={styles.iconContainer}>
+              <LinearGradient
+                colors={GradientColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.iconContainer}
+              >
                 <Ionicons name="eye" size={24} color="white" />
-              </View>
+              </LinearGradient>
               <View style={styles.featureText}>
                 <Text style={styles.featureTitle}>Real-Time Vision</Text>
                 <Text style={styles.featureDescription}>
@@ -41,9 +49,14 @@ export default function WelcomeScreen() {
             </View>
 
             <View style={styles.featureItem}>
-              <View style={styles.iconContainer}>
+              <LinearGradient
+                colors={GradientColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.iconContainer}
+              >
                 <Ionicons name="mic" size={24} color="white" />
-              </View>
+              </LinearGradient>
               <View style={styles.featureText}>
                 <Text style={styles.featureTitle}>Voice Interaction</Text>
                 <Text style={styles.featureDescription}>
@@ -53,9 +66,14 @@ export default function WelcomeScreen() {
             </View>
 
             <View style={styles.featureItem}>
-              <View style={styles.iconContainer}>
+              <LinearGradient
+                colors={GradientColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.iconContainer}
+              >
                 <Ionicons name="bulb" size={24} color="white" />
-              </View>
+              </LinearGradient>
               <View style={styles.featureText}>
                 <Text style={styles.featureTitle}>Smart Assistance</Text>
                 <Text style={styles.featureDescription}>
@@ -65,9 +83,14 @@ export default function WelcomeScreen() {
             </View>
 
             <View style={styles.featureItem}>
-              <View style={styles.iconContainer}>
+              <LinearGradient
+                colors={GradientColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.iconContainer}
+              >
                 <Ionicons name="lock-closed" size={24} color="white" />
-              </View>
+              </LinearGradient>
               <View style={styles.featureText}>
                 <Text style={styles.featureTitle}>Privacy First</Text>
                 <Text style={styles.featureDescription}>
@@ -81,7 +104,9 @@ export default function WelcomeScreen() {
             <Link href="/connect" asChild>
               <TouchableOpacity style={styles.primaryButtonWrap} activeOpacity={0.8}>
                 <LinearGradient
-                  colors={['#8B7FD8', '#7B6FD0']}
+                  colors={GradientColors}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
                   style={styles.primaryButton}
                 >
                   <Text style={styles.primaryButtonText}>Get Started</Text>
@@ -137,10 +162,10 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#7B6FD0',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
+    overflow: 'hidden',
   },
   featureText: {
     flex: 1,
@@ -180,10 +205,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#7B6FD0',
+    borderColor: AccentColor,
   },
   secondaryButtonText: {
-    color: '#7B6FD0',
+    color: AccentColor,
     fontSize: 17,
     fontWeight: '600',
   },

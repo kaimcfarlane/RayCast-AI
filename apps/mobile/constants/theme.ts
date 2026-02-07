@@ -8,6 +8,11 @@ import { Platform } from 'react-native';
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
+/** Gradient: blue (left) → purple (right) */
+export const GradientColors = ['#6877e1', '#7254ae'] as const;
+/** Accent color (matches gradient end) */
+export const AccentColor = '#7254ae';
+
 export const Colors = {
   light: {
     text: '#11181C',

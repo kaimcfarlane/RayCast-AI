@@ -3,6 +3,7 @@ import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GradientColors, AccentColor } from '@/constants/theme';
 
 export default function ConnectScreen() {
   const insets = useSafeAreaInsets();
@@ -10,7 +11,9 @@ export default function ConnectScreen() {
   return (
     <View style={styles.container}>
         <LinearGradient
-          colors={['#8B7FD8', '#7B6FD0']}
+          colors={GradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
           style={[styles.gradientHeader, { paddingTop: insets.top + 24, paddingBottom: 32 }]}
         >
           <Text style={styles.title}>Connect Glasses</Text>
@@ -48,7 +51,7 @@ export default function ConnectScreen() {
           </View>
 
           <TouchableOpacity style={styles.primaryButtonWrap} activeOpacity={0.8}>
-            <LinearGradient colors={['#8B7FD8', '#7B6FD0']} style={styles.primaryButton}>
+            <LinearGradient colors={GradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
               <Text style={styles.primaryButtonText}>Start Pairing</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -167,7 +170,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   skipButtonText: {
-    color: '#7B6FD0',
+    color: AccentColor,
     fontSize: 15,
     fontWeight: '500',
   },

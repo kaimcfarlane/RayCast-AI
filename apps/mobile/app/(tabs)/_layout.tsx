@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { AccentColor } from '@/constants/theme';
 
-const TAB_COLOR = '#7B6FD0';
 const TAB_INACTIVE = '#999';
 
 export default function TabLayout() {
@@ -9,7 +9,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: TAB_COLOR,
+        tabBarActiveTintColor: AccentColor,
         tabBarInactiveTintColor: TAB_INACTIVE,
         tabBarStyle: {
           backgroundColor: '#fff',

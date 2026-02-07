@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenLayout } from '@/components/screen-layout';
+import { AccentColor } from '@/constants/theme';
 
 export default function SettingsScreen() {
   return (
@@ -8,7 +9,7 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Device</Text>
         <TouchableOpacity style={styles.row}>
-          <Ionicons name="glasses-outline" size={24} color="#7B6FD0" />
+          <Ionicons name="glasses-outline" size={24} color={AccentColor} />
           <Text style={styles.rowLabel}>Connect glasses</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
@@ -16,12 +17,12 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>App</Text>
         <TouchableOpacity style={styles.row}>
-          <Ionicons name="notifications-outline" size={24} color="#7B6FD0" />
+          <Ionicons name="notifications-outline" size={24} color={AccentColor} />
           <Text style={styles.rowLabel}>Notifications</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.row}>
-          <Ionicons name="lock-closed-outline" size={24} color="#7B6FD0" />
+          <Ionicons name="lock-closed-outline" size={24} color={AccentColor} />
           <Text style={styles.rowLabel}>Privacy</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
@@ -29,7 +30,7 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About</Text>
         <View style={styles.row}>
-          <Ionicons name="information-circle-outline" size={24} color="#7B6FD0" />
+          <Ionicons name="information-circle-outline" size={24} color={AccentColor} />
           <Text style={styles.rowLabel}>RayCast AI v1.0.0</Text>
         </View>
       </View>
