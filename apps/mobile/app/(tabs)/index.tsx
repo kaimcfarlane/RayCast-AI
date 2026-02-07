@@ -22,9 +22,14 @@ export default function HomeScreen() {
       <View style={styles.taskGrid}>
         <View style={styles.taskRow}>
           <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: AccentColor }]}>
+            <LinearGradient
+              colors={GradientColors}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.taskIcon, styles.taskIconGradient]}
+            >
               <Ionicons name="grid" size={28} color="white" />
-            </View>
+            </LinearGradient>
             <Text style={styles.taskLabel}>Chess</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.taskCard}>
@@ -128,6 +133,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
+  },
+  taskIconGradient: {
+    overflow: 'hidden',
   },
   taskLabel: {
     fontSize: 14,

@@ -1,7 +1,21 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenLayout } from '@/components/screen-layout';
-import { AccentColor } from '@/constants/theme';
+import { GradientColors } from '@/constants/theme';
+
+function SettingsIcon({ name }: { name: keyof typeof Ionicons.glyphMap }) {
+  return (
+    <LinearGradient
+      colors={GradientColors}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={styles.iconBg}
+    >
+      <Ionicons name={name} size={24} color="white" />
+    </LinearGradient>
+  );
+}
 
 export default function SettingsScreen() {
   return (
@@ -9,7 +23,7 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Device</Text>
         <TouchableOpacity style={styles.row}>
-          <Ionicons name="glasses-outline" size={24} color={AccentColor} />
+          <SettingsIcon name="glasses-outline" />
           <Text style={styles.rowLabel}>Connect glasses</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
@@ -17,12 +31,12 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>App</Text>
         <TouchableOpacity style={styles.row}>
-          <Ionicons name="notifications-outline" size={24} color={AccentColor} />
+          <SettingsIcon name="notifications-outline" />
           <Text style={styles.rowLabel}>Notifications</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.row}>
-          <Ionicons name="lock-closed-outline" size={24} color={AccentColor} />
+          <SettingsIcon name="lock-closed-outline" />
           <Text style={styles.rowLabel}>Privacy</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
@@ -30,7 +44,7 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About</Text>
         <View style={styles.row}>
-          <Ionicons name="information-circle-outline" size={24} color={AccentColor} />
+          <SettingsIcon name="information-circle-outline" />
           <Text style={styles.rowLabel}>RayCast AI v1.0.0</Text>
         </View>
       </View>
@@ -56,6 +70,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
+  },
+  iconBg: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
   rowLabel: {
     flex: 1,

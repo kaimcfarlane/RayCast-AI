@@ -1,8 +1,27 @@
+import { Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { AccentColor } from '@/constants/theme';
+import { GradientIcon } from '@/components/gradient-icon';
+import { GradientText } from '@/components/gradient-text';
 
 const TAB_INACTIVE = '#999';
+const LABEL_STYLE = { fontSize: 11, fontWeight: '500' as const };
+
+function TabIcon({
+  focused,
+  activeName,
+  inactiveName,
+}: {
+  focused: boolean;
+  activeName: keyof typeof Ionicons.glyphMap;
+  inactiveName: keyof typeof Ionicons.glyphMap;
+}) {
+  if (focused) {
+    return <GradientIcon name={activeName} />;
+  }
+  return <Ionicons name={inactiveName} size={24} color={TAB_INACTIVE} />;
+}
 
 export default function TabLayout() {
   return (
@@ -16,18 +35,21 @@ export default function TabLayout() {
           borderTopWidth: 1,
           borderTopColor: '#eee',
         },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '500',
-        },
+        tabBarLabelStyle: LABEL_STYLE,
+        tabBarLabel: ({ focused, color, children }) =>
+          focused ? (
+            <GradientText style={LABEL_STYLE}>{children}</GradientText>
+          ) : (
+            <Text style={[LABEL_STYLE, { color }]}>{children}</Text>
+          ),
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} activeName="home" inactiveName="home-outline" />
           ),
         }}
       />
@@ -35,8 +57,8 @@ export default function TabLayout() {
         name="live"
         options={{
           title: 'Live',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'videocam' : 'videocam-outline'} size={24} color={color} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} activeName="videocam" inactiveName="videocam-outline" />
           ),
         }}
       />
@@ -44,8 +66,8 @@ export default function TabLayout() {
         name="history"
         options={{
           title: 'History',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'time' : 'time-outline'} size={24} color={color} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} activeName="time" inactiveName="time-outline" />
           ),
         }}
       />
@@ -53,8 +75,8 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={24} color={color} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} activeName="settings" inactiveName="settings-outline" />
           ),
         }}
       />
