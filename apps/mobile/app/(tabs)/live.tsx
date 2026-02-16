@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenLayout } from '@/components/screen-layout';
+import { DarkTheme } from '@/constants/theme';
 
 export default function LiveScreen() {
   return (
@@ -16,7 +17,7 @@ export default function LiveScreen() {
     >
       <View style={styles.povFeed}>
         <View style={styles.povIcon}>
-          <Ionicons name="videocam" size={64} color="#DDD" />
+          <Ionicons name="videocam" size={64} color={DarkTheme.textMuted} />
         </View>
         <Text style={styles.povText}>Live POV Feed</Text>
         <Text style={styles.povSubtext}>Processing frames...</Text>
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   povFeed: {
-    backgroundColor: '#F8F8F8',
+    backgroundColor: DarkTheme.surface,
     borderRadius: 16,
     padding: 40,
     alignItems: 'center',
@@ -95,23 +96,23 @@ const styles = StyleSheet.create({
   povText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: DarkTheme.textSecondary,
     marginBottom: 4,
   },
   povSubtext: {
     fontSize: 14,
-    color: '#999',
+    color: DarkTheme.textMuted,
   },
   sceneCard: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
+    backgroundColor: DarkTheme.surface,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 20,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: DarkTheme.text,
     marginBottom: 12,
   },
   sceneInfo: {
@@ -120,37 +121,35 @@ const styles = StyleSheet.create({
   },
   sceneLabel: {
     fontSize: 14,
-    color: '#666',
+    color: DarkTheme.textSecondary,
     fontWeight: '500',
     width: 100,
   },
   sceneValue: {
     fontSize: 14,
-    color: '#333',
+    color: DarkTheme.text,
     flex: 1,
   },
   transcriptCard: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
+    backgroundColor: DarkTheme.surface,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 20,
   },
   transcriptBubble: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    backgroundColor: DarkTheme.surfaceElevated,
+    borderRadius: 10,
     padding: 12,
     marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#eee',
   },
   transcriptTime: {
     fontSize: 12,
-    color: '#999',
+    color: DarkTheme.textMuted,
     marginBottom: 4,
   },
   transcriptText: {
     fontSize: 14,
-    color: '#333',
+    color: DarkTheme.text,
     lineHeight: 20,
   },
 });

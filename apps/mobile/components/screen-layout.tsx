@@ -1,8 +1,10 @@
-import { View, Text, StyleSheet, ScrollView, ViewStyle } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, ViewStyle, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ReactNode } from 'react';
-import { GradientColors } from '@/constants/theme';
+import { DarkTheme } from '@/constants/theme';
+import { MenuOverlay } from '@/components/menu-overlay';
 
 type ScreenLayoutProps = {
   title: string;
@@ -14,66 +16,71 @@ type ScreenLayoutProps = {
 
 export function ScreenLayout({ title, subtitle, children, headerRight, contentStyle }: ScreenLayoutProps) {
   const insets = useSafeAreaInsets();
+  const [menuVisible, setMenuVisible] = useState(false);
 
   return (
-    <View style={styles.container}>
-        <LinearGradient
-          colors={GradientColors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.gradientHeader, { paddingTop: insets.top + 24, paddingBottom: 24 }]}
-        >
-          <View style={styles.headerRow}>
-            <View style={styles.headerText}>
-              <Text style={styles.title}>{title}</Text>
-              {subtitle != null && <Text style={styles.subtitle}>{subtitle}</Text>}
-            </View>
-            {headerRight}
-          </View>
-        </LinearGradient>
-        <ScrollView
-          style={styles.whiteSection}
-          contentContainerStyle={[styles.scrollContent, contentStyle, { paddingBottom: insets.bottom + 24 }]}
-          showsVerticalScrollIndicator={false}
-        >
-          {children}
-        </ScrollView>
+    <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
+      <MenuOverlay visible={menuVisible} onClose={() => setMenuVisible(false)} />
+
+      {/* Top row: hamburger + optional right element */}
+      <View style={styles.topRow}>
+        <TouchableOpacity style={styles.menuButton} onPress={() => setMenuVisible(true)}>
+          <Ionicons name="menu" size={22} color="#FFF" />
+        </TouchableOpacity>
+        {headerRight}
       </View>
+
+      {/* Title area */}
+      <Text style={styles.title}>{title}</Text>
+      {subtitle != null && <Text style={styles.subtitle}>{subtitle}</Text>}
+
+      {/* Scrollable content */}
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={[styles.scrollContent, contentStyle, { paddingBottom: insets.bottom + 24 }]} // Reduced padding now that navbar is not floating
+        showsVerticalScrollIndicator={false}
+      >
+        {children}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  gradientHeader: {
+    backgroundColor: DarkTheme.background,
     paddingHorizontal: 24,
   },
-  headerRow: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 24,
   },
-  headerText: {
-    flex: 1,
+  menuButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: DarkTheme.menuIconBg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: 'white',
+    color: DarkTheme.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: DarkTheme.textSecondary,
+    marginBottom: 16,
   },
-  whiteSection: {
+  scrollArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 16,
   },
 });

@@ -2,7 +2,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenLayout } from '@/components/screen-layout';
-import { GradientColors, AccentColor } from '@/constants/theme';
+import { GradientColors, DarkTheme } from '@/constants/theme';
+import { Button } from '@/components/ui/button';
 
 export default function HomeScreen() {
   return (
@@ -33,55 +34,51 @@ export default function HomeScreen() {
             <Text style={styles.taskLabel}>Chess</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: '#E0E0E0' }]}>
-              <Ionicons name="navigate" size={28} color="#999" />
+            <View style={[styles.taskIcon, { backgroundColor: DarkTheme.surfaceElevated }]}>
+              <Ionicons name="navigate" size={28} color={DarkTheme.textSecondary} />
             </View>
             <Text style={styles.taskLabel}>Navigate</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.taskRow}>
           <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: '#E0E0E0' }]}>
-              <Ionicons name="search" size={28} color="#999" />
+            <View style={[styles.taskIcon, { backgroundColor: DarkTheme.surfaceElevated }]}>
+              <Ionicons name="search" size={28} color={DarkTheme.textSecondary} />
             </View>
             <Text style={styles.taskLabel}>Find Object</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: '#E0E0E0' }]}>
-              <Ionicons name="book" size={28} color="#999" />
+            <View style={[styles.taskIcon, { backgroundColor: DarkTheme.surfaceElevated }]}>
+              <Ionicons name="book" size={28} color={DarkTheme.textSecondary} />
             </View>
             <Text style={styles.taskLabel}>Read Text</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.taskRow}>
           <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: '#E0E0E0' }]}>
-              <Ionicons name="chatbubble" size={28} color="#999" />
+            <View style={[styles.taskIcon, { backgroundColor: DarkTheme.surfaceElevated }]}>
+              <Ionicons name="chatbubble" size={28} color={DarkTheme.textSecondary} />
             </View>
             <Text style={styles.taskLabel}>Describe</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: '#E0E0E0' }]}>
-              <Ionicons name="bulb" size={28} color="#999" />
+            <View style={[styles.taskIcon, { backgroundColor: DarkTheme.surfaceElevated }]}>
+              <Ionicons name="bulb" size={28} color={DarkTheme.textSecondary} />
             </View>
             <Text style={styles.taskLabel}>General</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <TouchableOpacity style={styles.startButtonWrap} activeOpacity={0.8}>
-        <LinearGradient colors={GradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButton}>
-          <Text style={styles.startButtonText}>Start Session</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+      <Button title="Start Session" variant="primary" />
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
   connectionCard: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
+    backgroundColor: DarkTheme.surface,
+    borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -96,17 +93,17 @@ const styles = StyleSheet.create({
   connectionDevice: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: DarkTheme.text,
     marginBottom: 4,
   },
   connectionStatus: {
     fontSize: 14,
-    color: '#666',
+    color: DarkTheme.textSecondary,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: DarkTheme.text,
     marginBottom: 16,
   },
   taskGrid: {
@@ -119,8 +116,8 @@ const styles = StyleSheet.create({
   },
   taskCard: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
+    backgroundColor: DarkTheme.surface,
+    borderRadius: 16,
     padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -129,7 +126,7 @@ const styles = StyleSheet.create({
   taskIcon: {
     width: 56,
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -140,22 +137,7 @@ const styles = StyleSheet.create({
   taskLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#333',
+    color: DarkTheme.text,
     textAlign: 'center',
-  },
-  startButtonWrap: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  startButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  startButtonText: {
-    color: 'white',
-    fontSize: 17,
-    fontWeight: '600',
   },
 });

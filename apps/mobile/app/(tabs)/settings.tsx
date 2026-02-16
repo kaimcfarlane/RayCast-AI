@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenLayout } from '@/components/screen-layout';
-import { GradientColors } from '@/constants/theme';
+import { GradientColors, DarkTheme } from '@/constants/theme';
 
 function SettingsIcon({ name }: { name: keyof typeof Ionicons.glyphMap }) {
   return (
@@ -25,7 +25,7 @@ export default function SettingsScreen() {
         <TouchableOpacity style={styles.row}>
           <SettingsIcon name="glasses-outline" />
           <Text style={styles.rowLabel}>Connect glasses</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
+          <Ionicons name="chevron-forward" size={20} color={DarkTheme.textMuted} />
         </TouchableOpacity>
       </View>
       <View style={styles.section}>
@@ -33,12 +33,12 @@ export default function SettingsScreen() {
         <TouchableOpacity style={styles.row}>
           <SettingsIcon name="notifications-outline" />
           <Text style={styles.rowLabel}>Notifications</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
+          <Ionicons name="chevron-forward" size={20} color={DarkTheme.textMuted} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.row}>
           <SettingsIcon name="lock-closed-outline" />
           <Text style={styles.rowLabel}>Privacy</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
+          <Ionicons name="chevron-forward" size={20} color={DarkTheme.textMuted} />
         </TouchableOpacity>
       </View>
       <View style={styles.section}>
@@ -59,22 +59,24 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#999',
+    color: DarkTheme.textMuted,
     marginBottom: 12,
     marginLeft: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
+    backgroundColor: DarkTheme.surface,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 8,
   },
   iconBg: {
     width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -82,7 +84,7 @@ const styles = StyleSheet.create({
   rowLabel: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: DarkTheme.text,
     marginLeft: 12,
   },
 });
