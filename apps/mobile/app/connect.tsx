@@ -16,7 +16,10 @@ export default function ConnectScreen() {
       if (Platform.OS !== 'ios') {
         Alert.alert('Not available', 'Glasses pairing is only supported on iOS.');
       } else {
-        Alert.alert('Not available', 'Wearables module not loaded. Run with Expo dev client on a device.');
+        Alert.alert(
+          'Wearables module not loaded',
+          "The native Wearables code is only in the app when you build the iOS app (it's not added by the dev server). Rebuild and install with:\n\nnpx expo run:ios --device\n\nThen connect this app to your tunnel or LAN URL as usual."
+        );
       }
       return;
     }
