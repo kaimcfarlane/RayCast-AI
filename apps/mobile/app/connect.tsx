@@ -1,12 +1,29 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
 import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientColors, AccentColor } from '@/constants/theme';
+import { startRegistration, wearablesAvailable } from '@/lib/wearables';
 
 export default function ConnectScreen() {
   const insets = useSafeAreaInsets();
+  const [pairingStarted, setPairingStarted] = useState(false);
+
+  const onStartPairing = () => {
+    if (!wearablesAvailable) {
+      if (Platform.OS !== 'ios') {
+        Alert.alert('Not available', 'Glasses pairing is only supported on iOS.');
+      } else {
+        Alert.alert('Not available', 'Wearables module not loaded. Run with Expo dev client on a device.');
+      }
+      return;
+    }
+    setPairingStarted(true);
+    startRegistration();
+    // User will be sent to Meta AI app; when they finish, they return via raycastai://
+  };
 
   return (
     <View style={styles.container}>
@@ -29,7 +46,11 @@ export default function ConnectScreen() {
             <View style={styles.glassesIcon}>
               <Ionicons name="glasses-outline" size={60} color="#CCC" />
             </View>
-            <Text style={styles.statusText}>Searching for devices...</Text>
+            <Text style={styles.statusText}>
+              {pairingStarted
+                ? 'Opening Meta AI… Complete registration there, then return here.'
+                : 'Register this app with Meta AI, then your glasses can connect.'}
+            </Text>
           </View>
 
           <View style={styles.errorCard}>
@@ -46,11 +67,12 @@ export default function ConnectScreen() {
             <Text style={styles.stepsTitle}>Setup Steps</Text>
             <Text style={styles.stepItem}>1. Turn on your Meta Ray-Ban glasses</Text>
             <Text style={styles.stepItem}>2. Enable Bluetooth on your phone</Text>
-            <Text style={styles.stepItem}>3. Hold glasses near your phone</Text>
-            <Text style={styles.stepItem}>4. Tap "Start Pairing" below</Text>
+            <Text style={styles.stepItem}>3. Have the Meta AI app installed</Text>
+            <Text style={styles.stepItem}>4. Tap "Start Pairing" — you’ll open Meta AI to authorize this app</Text>
+            <Text style={styles.stepItem}>5. Return to this app after authorizing</Text>
           </View>
 
-          <TouchableOpacity style={styles.primaryButtonWrap} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.primaryButtonWrap} activeOpacity={0.8} onPress={onStartPairing}>
             <LinearGradient colors={GradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
               <Text style={styles.primaryButtonText}>Start Pairing</Text>
             </LinearGradient>
