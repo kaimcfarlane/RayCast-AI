@@ -1,9 +1,18 @@
-import { Modal, View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, TouchableWithoutFeedback } from 'react-native';
+import { Modal, View, Text, StyleSheet, Pressable, Dimensions, Animated, Easing as RNEasing, TouchableWithoutFeedback } from 'react-native';
+import AnimatedReanimated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withTiming,
+    Easing,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { DarkTheme } from '@/constants/theme';
+import { AnimatedIconButton } from '@/components/ui/animated-icon-button';
+
+const easeInOut = Easing.bezier(0.4, 0, 0.2, 1);
 
 type MenuOverlayProps = {
     visible: boolean;
@@ -15,44 +24,53 @@ const DRAWER_WIDTH = SCREEN_WIDTH * 0.8;
 
 export function MenuOverlay({ visible, onClose }: MenuOverlayProps) {
     const insets = useSafeAreaInsets();
+    const [isMounted, setIsMounted] = useState(false);
     const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
+        const overlayEasing = RNEasing.bezier(0.4, 0, 0.2, 1);
         if (visible) {
+            setIsMounted(true);
             Animated.parallel([
                 Animated.timing(slideAnim, {
                     toValue: 0,
                     duration: 300,
+                    easing: overlayEasing,
                     useNativeDriver: true,
                 }),
                 Animated.timing(fadeAnim, {
                     toValue: 1,
                     duration: 300,
+                    easing: overlayEasing,
                     useNativeDriver: true,
                 }),
             ]).start();
-        } else {
+        } else if (isMounted) {
             Animated.parallel([
                 Animated.timing(slideAnim, {
                     toValue: -DRAWER_WIDTH,
                     duration: 250,
+                    easing: overlayEasing,
                     useNativeDriver: true,
                 }),
                 Animated.timing(fadeAnim, {
                     toValue: 0,
                     duration: 250,
+                    easing: overlayEasing,
                     useNativeDriver: true,
                 }),
-            ]).start();
+            ]).start(() => {
+                setIsMounted(false);
+            });
         }
     }, [visible]);
 
-    if (!visible) return null;
+    if (!isMounted) return null;
 
     return (
         <Modal
-            visible={visible}
+            visible={isMounted}
             transparent
             animationType="none"
             onRequestClose={onClose}
@@ -78,9 +96,9 @@ export function MenuOverlay({ visible, onClose }: MenuOverlayProps) {
                 >
                     {/* Header with Close Button */}
                     <View style={styles.header}>
-                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                        <AnimatedIconButton onPress={onClose} style={styles.closeButton}>
                             <Ionicons name="close" size={24} color="#FFF" />
-                        </TouchableOpacity>
+                        </AnimatedIconButton>
                     </View>
 
                     {/* Menu Content */}
@@ -113,12 +131,34 @@ export function MenuOverlay({ visible, onClose }: MenuOverlayProps) {
 
 function MenuItem({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
     return (
-        <TouchableOpacity onPress={onPress} style={styles.menuItem}>
-            <View style={styles.iconContainer}>
-                <Ionicons name={icon} size={24} color="#FFF" />
-            </View>
-            <Text style={styles.menuLabel}>{label}</Text>
-        </TouchableOpacity>
+        <AnimatedMenuItem icon={icon} label={label} onPress={onPress} />
+    );
+}
+
+function AnimatedMenuItem({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
+    const scale = useSharedValue(1);
+
+    const onPressIn = () => {
+        scale.value = withTiming(0.97, { duration: 120, easing: easeInOut });
+    };
+
+    const onPressOut = () => {
+        scale.value = withTiming(1, { duration: 180, easing: easeInOut });
+    };
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }));
+
+    return (
+        <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut} style={styles.menuItem}>
+            <AnimatedReanimated.View style={[styles.menuItemInner, animatedStyle]}>
+                <View style={styles.iconContainer}>
+                    <Ionicons name={icon} size={24} color="#FFF" />
+                </View>
+                <Text style={styles.menuLabel}>{label}</Text>
+            </AnimatedReanimated.View>
+        </Pressable>
     );
 }
 
@@ -161,6 +201,10 @@ const styles = StyleSheet.create({
         gap: 28,
     },
     menuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    menuItemInner: {
         flexDirection: 'row',
         alignItems: 'center',
     },

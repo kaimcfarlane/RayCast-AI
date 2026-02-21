@@ -1,11 +1,26 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenLayout } from '@/components/screen-layout';
-import { GradientColors, DarkTheme } from '@/constants/theme';
+import { DarkTheme } from '@/constants/theme';
 import { Button } from '@/components/ui/button';
+import { TaskCard } from '@/components/task-card';
+
+type TaskMode = 'chess' | 'navigate' | 'find-object' | 'read-text' | 'describe' | 'general' | null;
 
 export default function HomeScreen() {
+  const [selectedTask, setSelectedTask] = useState<TaskMode>(null);
+
+  const taskModes: { id: TaskMode; icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
+    { id: 'chess', icon: 'grid', label: 'Chess' },
+    { id: 'navigate', icon: 'navigate', label: 'Navigate' },
+    { id: 'find-object', icon: 'search', label: 'Find Object' },
+    { id: 'read-text', icon: 'book', label: 'Read Text' },
+    { id: 'describe', icon: 'chatbubble', label: 'Describe' },
+    { id: 'general', icon: 'bulb', label: 'General' },
+  ];
+
   return (
     <ScreenLayout title="Dashboard" subtitle="Ready to assist">
       {/* Not connected state */}
@@ -21,56 +36,26 @@ export default function HomeScreen() {
 
       <Text style={styles.sectionTitle}>Select Task Mode</Text>
       <View style={styles.taskGrid}>
-        <View style={styles.taskRow}>
-          <TouchableOpacity style={styles.taskCard}>
-            <LinearGradient
-              colors={GradientColors}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.taskIcon, styles.taskIconGradient]}
-            >
-              <Ionicons name="grid" size={28} color="white" />
-            </LinearGradient>
-            <Text style={styles.taskLabel}>Chess</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: DarkTheme.surfaceElevated }]}>
-              <Ionicons name="navigate" size={28} color={DarkTheme.textSecondary} />
-            </View>
-            <Text style={styles.taskLabel}>Navigate</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.taskRow}>
-          <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: DarkTheme.surfaceElevated }]}>
-              <Ionicons name="search" size={28} color={DarkTheme.textSecondary} />
-            </View>
-            <Text style={styles.taskLabel}>Find Object</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: DarkTheme.surfaceElevated }]}>
-              <Ionicons name="book" size={28} color={DarkTheme.textSecondary} />
-            </View>
-            <Text style={styles.taskLabel}>Read Text</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.taskRow}>
-          <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: DarkTheme.surfaceElevated }]}>
-              <Ionicons name="chatbubble" size={28} color={DarkTheme.textSecondary} />
-            </View>
-            <Text style={styles.taskLabel}>Describe</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.taskCard}>
-            <View style={[styles.taskIcon, { backgroundColor: DarkTheme.surfaceElevated }]}>
-              <Ionicons name="bulb" size={28} color={DarkTheme.textSecondary} />
-            </View>
-            <Text style={styles.taskLabel}>General</Text>
-          </TouchableOpacity>
-        </View>
+        {[0, 1, 2].map((row) => (
+          <View key={row} style={styles.taskRow}>
+            {taskModes.slice(row * 2, row * 2 + 2).map((task) => (
+              <TaskCard
+                key={task.id}
+                icon={task.icon}
+                label={task.label}
+                isSelected={selectedTask === task.id}
+                onPress={() => setSelectedTask(task.id)}
+              />
+            ))}
+          </View>
+        ))}
       </View>
 
-      <Button title="Start Session" variant="primary" />
+      <Button
+        title="Start Session"
+        variant="primary"
+        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
+      />
     </ScreenLayout>
   );
 }
@@ -113,31 +98,5 @@ const styles = StyleSheet.create({
   taskRow: {
     flexDirection: 'row',
     gap: 12,
-  },
-  taskCard: {
-    flex: 1,
-    backgroundColor: DarkTheme.surface,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 100,
-  },
-  taskIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  taskIconGradient: {
-    overflow: 'hidden',
-  },
-  taskLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: DarkTheme.text,
-    textAlign: 'center',
   },
 });

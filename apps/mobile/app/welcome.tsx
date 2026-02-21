@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DarkTheme } from '@/constants/theme';
 import { Button } from '@/components/ui/button';
+import { AnimatedIconButton } from '@/components/ui/animated-icon-button';
 import { MenuOverlay } from '@/components/menu-overlay';
 
 export default function WelcomeScreen() {
@@ -19,9 +20,9 @@ export default function WelcomeScreen() {
         <MenuOverlay visible={menuVisible} onClose={() => setMenuVisible(false)} />
 
         {/* Hamburger menu */}
-        <TouchableOpacity style={styles.menuButton} onPress={() => setMenuVisible(true)}>
+        <AnimatedIconButton style={styles.menuButton} onPress={() => setMenuVisible(true)}>
           <Ionicons name="menu" size={22} color="#FFF" />
-        </TouchableOpacity>
+        </AnimatedIconButton>
 
         {/* Title */}
         <Text style={styles.title}>Welcome to{'\n'}RayCast AI!</Text>

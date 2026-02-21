@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ViewStyle, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ReactNode } from 'react';
 import { DarkTheme } from '@/constants/theme';
+import { AnimatedIconButton } from '@/components/ui/animated-icon-button';
 import { MenuOverlay } from '@/components/menu-overlay';
 
 type ScreenLayoutProps = {
@@ -24,9 +25,9 @@ export function ScreenLayout({ title, subtitle, children, headerRight, contentSt
 
       {/* Top row: hamburger + optional right element */}
       <View style={styles.topRow}>
-        <TouchableOpacity style={styles.menuButton} onPress={() => setMenuVisible(true)}>
+        <AnimatedIconButton style={styles.menuButton} onPress={() => setMenuVisible(true)}>
           <Ionicons name="menu" size={22} color="#FFF" />
-        </TouchableOpacity>
+        </AnimatedIconButton>
         {headerRight}
       </View>
 
