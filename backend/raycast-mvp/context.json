@@ -1,0 +1,59 @@
+{
+  "session_id": "local_test_001",
+  "source_type": "video",
+  "video_file_name": "test.mp4",
+  "frame_interval": 6,
+  "scene": {
+    "scene_summary": "The images depict various areas of a room decorated with posters, flags, and LED lights, reflecting a personal style and interests.",
+    "objects": [
+      {
+        "label": "flags",
+        "count": 2
+      },
+      {
+        "label": "posters",
+        "count": 5
+      },
+      {
+        "label": "LED lights",
+        "count": 1
+      },
+      {
+        "label": "TV",
+        "count": 1
+      },
+      {
+        "label": "shelves",
+        "count": 1
+      },
+      {
+        "label": "bedding",
+        "count": 1
+      },
+      {
+        "label": "gaming controller (design on wall)",
+        "count": 1
+      },
+      {
+        "label": "furniture (shelves, table)",
+        "count": 1
+      },
+      {
+        "label": "decorative items",
+        "count": 4
+      }
+    ],
+    "text_in_scene": [],
+    "key_details": [
+      "Multiple posters feature pop culture references and games.",
+      "Flags displayed represent cultural significance.",
+      "LED lights create ambient lighting in the room.",
+      "Visible clutter on shelves, indicating active use of the space."
+    ],
+    "uncertainties": [
+      "Some objects are unclear due to image quality.",
+      "Specific text on posters could not be deciphered."
+    ]
+  },
+  "transcript": "This is a test video. I am currently testing the audio for my side of the project. Yes."
+}
