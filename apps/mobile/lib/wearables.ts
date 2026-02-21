@@ -2,7 +2,7 @@ import { NativeModules, Platform } from 'react-native';
 
 const WearablesModule = NativeModules.WearablesModule as
   | {
-      startRegistration: () => void;
+      startRegistration: () => Promise<void>;
       requestCameraPermission: () => Promise<string>;
     }
   | undefined;
@@ -12,12 +12,13 @@ const isIOS = Platform.OS === 'ios';
 /**
  * Start registration with the Meta AI app. On iOS this opens Meta AI so the user
  * can authorize this app for wearables. Callback URL (raycastai://) returns to the app.
+ * Rejects if Meta AI cannot be opened (e.g. app not installed).
  */
-export function startRegistration(): void {
+export function startRegistration(): Promise<void> {
   if (!isIOS || !WearablesModule) {
-    return;
+    return Promise.reject(new Error('Wearables not available'));
   }
-  WearablesModule.startRegistration();
+  return WearablesModule.startRegistration();
 }
 
 /**

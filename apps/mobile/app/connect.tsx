@@ -11,7 +11,7 @@ export default function ConnectScreen() {
   const insets = useSafeAreaInsets();
   const [pairingStarted, setPairingStarted] = useState(false);
 
-  const onStartPairing = () => {
+  const onStartPairing = async () => {
     if (!wearablesAvailable) {
       if (Platform.OS !== 'ios') {
         Alert.alert('Not available', 'Glasses pairing is only supported on iOS.');
@@ -24,8 +24,24 @@ export default function ConnectScreen() {
       return;
     }
     setPairingStarted(true);
-    startRegistration();
-    // User will be sent to Meta AI app; when they finish, they return via raycastai://
+    try {
+      await startRegistration();
+      // Success: Meta AI should have opened. User returns via raycastai://
+    } catch (e: unknown) {
+      const message =
+        typeof e === 'object' && e !== null && 'message' in e
+          ? String((e as { message: string }).message)
+          : e instanceof Error
+            ? e.message
+            : String(e);
+      setPairingStarted(false);
+      Alert.alert(
+        'Could not open Meta AI',
+        message.includes('error 1')
+          ? message
+          : message + '\n\nMake sure the Meta AI app is installed (search "Meta View" or "Meta AI" in the App Store), then try again.'
+      );
+    }
   };
 
   return (

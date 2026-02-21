@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "com.thelenslink.raycastai",
-      "associatedDomains": ["applinks:thelenslink.com"]
+      "associatedDomains": ["applinks:thelenslink.com", "applinks:app.thelenslink.com"]
     },
     "android": {
       "adaptiveIcon": {
