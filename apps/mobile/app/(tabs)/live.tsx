@@ -48,7 +48,7 @@ export default function LiveScreen() {
         <View style={styles.centerBlock}>
           <Ionicons name="cloud-offline" size={48} color={DarkTheme.textMuted} style={{ marginBottom: 12 }} />
           <Text style={styles.errorText}>{error}</Text>
-          <Text style={styles.errorHint}>Ensure the backend is running (uvicorn on port 8001)</Text>
+          <Text style={styles.errorHint}>Ensure the backend is running</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchContext}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
