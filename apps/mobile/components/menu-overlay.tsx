@@ -25,12 +25,14 @@ const DRAWER_WIDTH = SCREEN_WIDTH * 0.8;
 export function MenuOverlay({ visible, onClose }: MenuOverlayProps) {
     const insets = useSafeAreaInsets();
     const [isMounted, setIsMounted] = useState(false);
+    const isMountedRef = useRef(false);
     const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         const overlayEasing = RNEasing.bezier(0.4, 0, 0.2, 1);
         if (visible) {
+            isMountedRef.current = true;
             setIsMounted(true);
             Animated.parallel([
                 Animated.timing(slideAnim, {
@@ -46,7 +48,7 @@ export function MenuOverlay({ visible, onClose }: MenuOverlayProps) {
                     useNativeDriver: true,
                 }),
             ]).start();
-        } else if (isMounted) {
+        } else if (isMountedRef.current) {
             Animated.parallel([
                 Animated.timing(slideAnim, {
                     toValue: -DRAWER_WIDTH,
@@ -61,6 +63,7 @@ export function MenuOverlay({ visible, onClose }: MenuOverlayProps) {
                     useNativeDriver: true,
                 }),
             ]).start(() => {
+                isMountedRef.current = false;
                 setIsMounted(false);
             });
         }
