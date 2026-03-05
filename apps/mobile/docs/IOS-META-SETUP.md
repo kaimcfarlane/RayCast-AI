@@ -48,12 +48,28 @@ If Xcode shows **No such module 'Expo'** or many **module map file ... not found
 - **Always open** `ios/RayCastAI.xcworkspace` (not the `.xcodeproj`).
 - Build once (Cmd+B). If the app builds and runs, the red is cosmetic; the build has the right paths.
 
+## What you should see when you tap “Start Pairing”
+
+1. **Meta AI app opens** (not the home/chat screen).
+2. **A connect/registration screen** — e.g. “Connect [RayCast AI]” or “Allow [RayCast AI] to connect to your glasses”, or a “Connected apps” / “Developer” screen where you can add or approve your app. Exact wording depends on the Meta AI app version.
+3. **You approve** (e.g. “Connect” or “Allow”).
+4. **You are sent back to RayCast AI** via the callback URL (`raycastai://` or your Universal Link). The app’s AppDelegate passes that URL to `Wearables.shared.handleUrl(url)` so registration completes.
+
+If Meta AI opens to the **home screen** only, see “AppLinkURLScheme” below and ensure you rebuilt the app after changing it.
+
+## AppLinkURLScheme (critical for pairing screen)
+
+- In **Info.plist → MWDAT → AppLinkURLScheme** you must use your app’s **custom URL scheme** (e.g. `raycastai://`), not a Universal Link.
+- The [official iOS build integration](https://wearables.developer.meta.com/docs/build-integration-ios/) and [sample app](https://github.com/facebook/meta-wearables-dat-ios/tree/main/samples) use a scheme like `myexampleapp://` or `cameraaccess://`.
+- If you set `AppLinkURLScheme` to a Universal Link (e.g. `https://app.thelenslink.com`), Meta AI will open when you tap Pair but **stay on the home screen** instead of showing the “connect this app” / registration flow. Changing it to `raycastai://` fixes this.
+- In the Wearables Developer Center, when you add your app, you can register the same callback (custom scheme or Universal Link) as needed for distribution; for the SDK handoff, `AppLinkURLScheme` in the app must be the custom scheme.
+
 ## Entitlements: two domains
 
 - **applinks:thelenslink.com**
 - **applinks:app.thelenslink.com**
 
-Both are fine. Meta’s callback uses `https://app.thelenslink.com`, so the second is the one used for Universal Links. Keeping both does not cause problems.
+Both are fine for Universal Links elsewhere. For MWDAT, use the custom scheme in `AppLinkURLScheme` as above.
 
 ## SDK usage in this app
 
@@ -63,8 +79,9 @@ Both are fine. Meta’s callback uses `https://app.thelenslink.com`, so the seco
 
 ## Seeing [Wearables] / [MWDAT] logs
 
-- **When you run from Xcode:** Device logs appear in the **Xcode console** (View → Debug Area → Activate Console). Filter by `Wearables` or `MWDAT`. The Mac **Console.app** only shows logs for processes on the Mac, not for the app running on the device.
-- **When you run with `npx expo run:ios --device`:** The app runs on the phone; logs are on the **device**. To see them on the Mac, run the app from **Xcode** with the device selected (so Xcode streams the device log), or use **Console.app** with the device connected and selected in the sidebar, or run `xcrun devicectl device info logs --device <udid>` in Terminal.
+- **JS logs (Connect screen, startRegistration):** In the **Metro** terminal where you ran `pnpm start` or `npx expo start`. Look for `[Connect]` and `[Wearables]` (e.g. `[Connect] onStartPairing: calling startRegistration()...`, `[Wearables] startRegistration: calling native...`).
+- **Native (Swift) logs:** When you run the app from **Xcode** (Run on your device, then View → Debug Area → Activate Console). Filter by `Wearables` or `MWDAT`. You’ll see e.g. `[Wearables] startRegistration called from JS`, then either success + fallback open logs or an error.
+- **If you only use `pnpm run ios --device`:** Native logs are on the device. To see them on the Mac, run the app once from **Xcode** with the device selected, or use **Console.app** with the device connected and selected in the sidebar.
 
 ## Optional: registration state and devices stream
 

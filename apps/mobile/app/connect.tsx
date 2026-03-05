@@ -12,6 +12,7 @@ export default function ConnectScreen() {
   const [pairingStarted, setPairingStarted] = useState(false);
 
   const onStartPairing = async () => {
+    console.log('[Connect] onStartPairing: wearablesAvailable=', wearablesAvailable);
     if (!wearablesAvailable) {
       if (Platform.OS !== 'ios') {
         Alert.alert('Not available', 'Glasses pairing is only supported on iOS.');
@@ -24,8 +25,10 @@ export default function ConnectScreen() {
       return;
     }
     setPairingStarted(true);
+    console.log('[Connect] onStartPairing: calling startRegistration()...');
     try {
       await startRegistration();
+      console.log('[Connect] onStartPairing: startRegistration() returned (Meta AI should have opened)');
       // Success: Meta AI should have opened. User returns via raycastai://
     } catch (e: unknown) {
       const message =
@@ -34,6 +37,8 @@ export default function ConnectScreen() {
           : e instanceof Error
             ? e.message
             : String(e);
+      console.warn('[Connect] onStartPairing: startRegistration failed', e);
+      console.warn('[Connect] onStartPairing: message=', message);
       setPairingStarted(false);
       Alert.alert(
         'Could not open Meta AI',
@@ -84,11 +89,11 @@ export default function ConnectScreen() {
 
           <View style={styles.setupSteps}>
             <Text style={styles.stepsTitle}>Setup Steps</Text>
-            <Text style={styles.stepItem}>1. Turn on your Meta Ray-Ban glasses</Text>
-            <Text style={styles.stepItem}>2. Enable Bluetooth on your phone</Text>
-            <Text style={styles.stepItem}>3. Have the Meta AI app installed</Text>
-            <Text style={styles.stepItem}>4. Tap "Start Pairing" — you’ll open Meta AI to authorize this app</Text>
-            <Text style={styles.stepItem}>5. Return to this app after authorizing</Text>
+            <Text style={styles.stepItem}>1. In Meta AI app: turn on Developer Mode (Profile → Settings → Developer mode)</Text>
+            <Text style={styles.stepItem}>2. Turn on your glasses and enable Bluetooth</Text>
+            <Text style={styles.stepItem}>3. Tap "Start Pairing" — approve connecting RayCast AI in Meta AI if prompted</Text>
+            <Text style={styles.stepItem}>4. Return to this app after authorizing</Text>
+            <Text style={[styles.stepItem, styles.stepTip]}>If Meta AI opens to the home screen: open Menu → Device settings and look for “Connected apps” or “Developer” to add or approve RayCast AI.</Text>
           </View>
 
           <TouchableOpacity style={styles.primaryButtonWrap} activeOpacity={0.8} onPress={onStartPairing}>
@@ -189,6 +194,12 @@ const styles = StyleSheet.create({
     color: '#555',
     marginBottom: 8,
     lineHeight: 22,
+  },
+  stepTip: {
+    marginTop: 4,
+    fontSize: 13,
+    color: '#888',
+    fontStyle: 'italic',
   },
   primaryButtonWrap: {
     borderRadius: 12,

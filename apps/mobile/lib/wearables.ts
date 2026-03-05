@@ -9,6 +9,8 @@ const WearablesModule = NativeModules.WearablesModule as
 
 const isIOS = Platform.OS === 'ios';
 
+const LOG_TAG = '[Wearables]';
+
 /**
  * Start registration with the Meta AI app. On iOS this opens Meta AI so the user
  * can authorize this app for wearables. Callback URL (raycastai://) returns to the app.
@@ -16,9 +18,19 @@ const isIOS = Platform.OS === 'ios';
  */
 export function startRegistration(): Promise<void> {
   if (!isIOS || !WearablesModule) {
+    console.warn(LOG_TAG, 'startRegistration: not available (iOS=', isIOS, ', module=', !!WearablesModule, ')');
     return Promise.reject(new Error('Wearables not available'));
   }
-  return WearablesModule.startRegistration();
+  console.log(LOG_TAG, 'startRegistration: calling native...');
+  return WearablesModule.startRegistration().then(
+    () => {
+      console.log(LOG_TAG, 'startRegistration: native resolved (Meta AI should have opened or will open)');
+    },
+    (err: unknown) => {
+      console.warn(LOG_TAG, 'startRegistration: native rejected', err);
+      throw err;
+    }
+  );
 }
 
 /**
