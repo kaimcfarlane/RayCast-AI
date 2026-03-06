@@ -12,11 +12,11 @@ const BASE_URL_OVERRIDE = process.env.EXPO_PUBLIC_RAYCAST_API_BASE_URL;
 const getDefaultBaseUrl = () => {
   if (__DEV__) {
     if (Platform.OS === 'android') {
-      return 'http://10.0.2.2:8001';
+      return 'http://10.0.2.2:8000';
     }
-    return `http://${LAN_IP}:8001`;
+    return `http://${LAN_IP}:8000`;
   }
-  return `http://${LAN_IP}:8001`;
+  return `http://${LAN_IP}:8000`;
 };
 
 export const API_BASE_URL = BASE_URL_OVERRIDE ?? getDefaultBaseUrl();
