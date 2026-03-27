@@ -1,5 +1,5 @@
 import json, base64, cv2
-from app.services.config import client
+from app.services.config import get_openai_client
 
 def extract_frames(video_path: str, frame_interval: int) -> list[bytes]:
     """Extract evenly spaced frames from a video file."""
@@ -64,6 +64,7 @@ def scene_description(frames: list[bytes]) -> dict:
             "image_url": f"data:image/jpeg;base64,{b64}"
         })
 
+    client = get_openai_client()
     response = client.responses.create(
         model="gpt-4o-mini",
         input=[{"role": "user", "content": content}],
