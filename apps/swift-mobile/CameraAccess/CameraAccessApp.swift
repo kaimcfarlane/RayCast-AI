@@ -46,8 +46,6 @@ struct CameraAccessApp: App {
   }
 
   var body: some Scene {
-    // Same as mobile-test: one WindowGroup, MainAppView + RegistrationView.
-    // handlesExternalEvents so when Meta AI opens raycastai:// this window receives the URL (onOpenURL fires).
     WindowGroup {
       MainAppView(wearables: Wearables.shared, viewModel: wearablesViewModel)
         .alert("Error", isPresented: $wearablesViewModel.showError) {
@@ -66,9 +64,7 @@ struct CameraAccessApp: App {
         }
         #endif
 
-      // Same as mobile-test: invisible view that handles callbacks from Meta AI (metaWearablesAction → handleUrl).
       RegistrationView(viewModel: wearablesViewModel)
     }
-    .handlesExternalEvents(matching: ["raycastai"])
   }
 }

@@ -42,9 +42,9 @@
 		<key>AppLinkURLScheme</key>
 		<string>raycastai://</string>
 		<key>ClientToken</key>
-		<string>AR 1436598724640940|e509da6ea06ee9384080afece2c28edf</string>
+		<string>$(CLIENT_TOKEN)</string>
 		<key>MetaAppID</key>
-		<string>1436598724640940</string>
+		<string>$(META_APP_ID)</string>
 		<key>TeamID</key>
 		<string>$(DEVELOPMENT_TEAM)</string>
 	</dict>
