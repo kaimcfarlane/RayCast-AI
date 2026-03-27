@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, Platform, Alert, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GradientColors, AccentColor } from '@/constants/theme';
+import { GradientColors, DarkTheme } from '@/constants/theme';
 import { startRegistration, wearablesAvailable } from '@/lib/wearables';
+import { MenuOverlay } from '@/components/menu-overlay';
+import { AnimatedIconButton } from '@/components/ui/animated-icon-button';
+import { Button } from '@/components/ui/button';
 
 export default function ConnectScreen() {
   const insets = useSafeAreaInsets();
   const [pairingStarted, setPairingStarted] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const onStartPairing = async () => {
     console.log('[Connect] onStartPairing: wearablesAvailable=', wearablesAvailable);
@@ -29,7 +33,6 @@ export default function ConnectScreen() {
     try {
       await startRegistration();
       console.log('[Connect] onStartPairing: startRegistration() returned (Meta AI should have opened)');
-      // Success: Meta AI should have opened. User returns via raycastai://
     } catch (e: unknown) {
       const message =
         typeof e === 'object' && e !== null && 'message' in e
@@ -50,185 +53,179 @@ export default function ConnectScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
+      <MenuOverlay visible={menuVisible} onClose={() => setMenuVisible(false)} />
+
+      {/* Hamburger menu */}
+      <AnimatedIconButton style={styles.menuButton} onPress={() => setMenuVisible(true)}>
+        <Ionicons name="menu" size={22} color="#FFF" />
+      </AnimatedIconButton>
+
+      {/* Title */}
+      <Text style={styles.title}>Connect Your Glasses</Text>
+      <Text style={styles.subtitle}>Pair Meta Ray-Ban to start</Text>
+
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Search card with gradient */}
         <LinearGradient
           colors={GradientColors}
           start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.gradientHeader, { paddingTop: insets.top + 24, paddingBottom: 32 }]}
+          end={{ x: 1, y: 1 }}
+          style={styles.searchCard}
         >
-          <Text style={styles.title}>Connect Glasses</Text>
-          <Text style={styles.subtitle}>Pair your Meta Ray-Ban</Text>
+          <Ionicons name="glasses-outline" size={64} color="rgba(255,255,255,0.85)" />
+          <Text style={styles.searchText}>
+            {pairingStarted ? 'Connecting to glasses...' : 'Searching for devices...'}
+          </Text>
         </LinearGradient>
 
-        <ScrollView
-          style={styles.whiteSection}
-          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.statusCard}>
-            <View style={styles.glassesIcon}>
-              <Ionicons name="glasses-outline" size={60} color="#CCC" />
-            </View>
-            <Text style={styles.statusText}>
-              {pairingStarted
-                ? 'Connecting… Complete the connection in the Meta AI app, then return here.'
-                : "You'll be redirected to the Meta AI app to confirm your connection."}
-            </Text>
+        {/* Connection status card */}
+        <View style={styles.statusCard}>
+          <View style={styles.bluetoothIcon}>
+            <Ionicons
+              name="bluetooth"
+              size={22}
+              color={pairingStarted ? '#FFAA00' : '#FF4444'}
+            />
           </View>
+          <Text style={styles.statusText}>
+            {pairingStarted ? 'Connecting...' : 'Not Connected'}
+          </Text>
+        </View>
 
-          <View style={styles.errorCard}>
-            <View style={styles.errorIcon}>
-              <Ionicons name="close-circle" size={24} color="#FF4444" />
-            </View>
-            <View style={styles.errorTextContainer}>
-              <Text style={styles.errorTitle}>Connection Status</Text>
-              <Text style={styles.errorMessage}>Not Connected</Text>
-            </View>
-          </View>
+        {/* Setup steps card */}
+        <View style={styles.setupCard}>
+          <Text style={styles.stepsTitle}>Setup Steps</Text>
+          <Text style={styles.stepItem}>
+            1. In Meta AI app: turn on Developer Mode (Profile → Settings → Developer mode)
+          </Text>
+          <Text style={styles.stepItem}>
+            2. Turn on your glasses and enable Bluetooth
+          </Text>
+          <Text style={styles.stepItem}>
+            3. Tap &ldquo;Start Pairing&rdquo; — approve connecting RayCast AI in Meta AI if prompted
+          </Text>
+          <Text style={styles.stepItem}>
+            4. Return to this app after authorizing
+          </Text>
+          <Text style={[styles.stepItem, styles.stepTip]}>
+            If Meta AI opens to the home screen: open Menu → Device settings and look for
+            &ldquo;Connected apps&rdquo; or &ldquo;Developer&rdquo; to add or approve RayCast AI.
+          </Text>
+        </View>
 
-          <View style={styles.setupSteps}>
-            <Text style={styles.stepsTitle}>Setup Steps</Text>
-            <Text style={styles.stepItem}>1. In Meta AI app: turn on Developer Mode (Profile → Settings → Developer mode)</Text>
-            <Text style={styles.stepItem}>2. Turn on your glasses and enable Bluetooth</Text>
-            <Text style={styles.stepItem}>3. Tap "Connect my glasses" — approve connecting RayCast AI in Meta AI if prompted</Text>
-            <Text style={styles.stepItem}>4. Return to this app after authorizing</Text>
-            <Text style={[styles.stepItem, styles.stepTip]}>If Meta AI opens to the home screen: open Menu → Device settings and look for “Connected apps” or “Developer” to add or approve RayCast AI.</Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.primaryButtonWrap}
-            activeOpacity={0.8}
+        {/* Buttons */}
+        <View style={styles.buttonsContainer}>
+          <Button
+            title={pairingStarted ? 'Connecting...' : 'Start Pairing'}
+            variant="primary"
             onPress={onStartPairing}
             disabled={pairingStarted}
-          >
-            <LinearGradient colors={GradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>{pairingStarted ? 'Connecting...' : 'Connect my glasses'}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
+          />
           <Link href="/(tabs)" asChild>
-            <TouchableOpacity style={styles.skipButton} activeOpacity={0.8}>
-              <Text style={styles.skipButtonText}>Skip for Now</Text>
-            </TouchableOpacity>
+            <Button title="Skip for now" variant="secondary" />
           </Link>
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  gradientHeader: {
+    backgroundColor: DarkTheme.background,
     paddingHorizontal: 24,
   },
+  menuButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: DarkTheme.menuIconBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
   title: {
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: 'bold',
-    color: 'white',
+    color: DarkTheme.text,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: DarkTheme.textSecondary,
+    marginBottom: 24,
   },
-  whiteSection: {
+  scrollArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 4,
   },
-  statusCard: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 16,
+  searchCard: {
+    borderRadius: 20,
     padding: 32,
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  glassesIcon: {
     marginBottom: 16,
+  },
+  searchText: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  statusCard: {
+    backgroundColor: DarkTheme.surface,
+    borderRadius: 16,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  bluetoothIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 68, 68, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
   },
   statusText: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-  errorCard: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  errorIcon: {
-    marginRight: 12,
-  },
-  errorTextContainer: {
-    flex: 1,
-  },
-  errorTitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 2,
-  },
-  errorMessage: {
-    fontSize: 16,
-    color: '#333',
     fontWeight: '600',
+    color: DarkTheme.text,
   },
-  setupSteps: {
-    backgroundColor: '#F8F8F8',
+  setupCard: {
+    backgroundColor: DarkTheme.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
   },
   stepsTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 16,
+    color: DarkTheme.text,
+    marginBottom: 14,
   },
   stepItem: {
-    fontSize: 15,
-    color: '#555',
+    fontSize: 14,
+    color: DarkTheme.textSecondary,
     marginBottom: 8,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   stepTip: {
     marginTop: 4,
     fontSize: 13,
-    color: '#888',
+    color: DarkTheme.textMuted,
     fontStyle: 'italic',
   },
-  primaryButtonWrap: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  primaryButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryButtonText: {
-    color: 'white',
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  skipButton: {
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  skipButtonText: {
-    color: AccentColor,
-    fontSize: 15,
-    fontWeight: '500',
+  buttonsContainer: {
+    gap: 14,
   },
 });
