@@ -72,8 +72,8 @@ export default function ConnectScreen() {
             </View>
             <Text style={styles.statusText}>
               {pairingStarted
-                ? 'Opening Meta AI… Complete registration there, then return here.'
-                : 'Register this app with Meta AI, then your glasses can connect.'}
+                ? 'Connecting… Complete the connection in the Meta AI app, then return here.'
+                : "You'll be redirected to the Meta AI app to confirm your connection."}
             </Text>
           </View>
 
@@ -91,14 +91,19 @@ export default function ConnectScreen() {
             <Text style={styles.stepsTitle}>Setup Steps</Text>
             <Text style={styles.stepItem}>1. In Meta AI app: turn on Developer Mode (Profile → Settings → Developer mode)</Text>
             <Text style={styles.stepItem}>2. Turn on your glasses and enable Bluetooth</Text>
-            <Text style={styles.stepItem}>3. Tap "Start Pairing" — approve connecting RayCast AI in Meta AI if prompted</Text>
+            <Text style={styles.stepItem}>3. Tap "Connect my glasses" — approve connecting RayCast AI in Meta AI if prompted</Text>
             <Text style={styles.stepItem}>4. Return to this app after authorizing</Text>
             <Text style={[styles.stepItem, styles.stepTip]}>If Meta AI opens to the home screen: open Menu → Device settings and look for “Connected apps” or “Developer” to add or approve RayCast AI.</Text>
           </View>
 
-          <TouchableOpacity style={styles.primaryButtonWrap} activeOpacity={0.8} onPress={onStartPairing}>
+          <TouchableOpacity
+            style={styles.primaryButtonWrap}
+            activeOpacity={0.8}
+            onPress={onStartPairing}
+            disabled={pairingStarted}
+          >
             <LinearGradient colors={GradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Start Pairing</Text>
+              <Text style={styles.primaryButtonText}>{pairingStarted ? 'Connecting...' : 'Connect my glasses'}</Text>
             </LinearGradient>
           </TouchableOpacity>
 

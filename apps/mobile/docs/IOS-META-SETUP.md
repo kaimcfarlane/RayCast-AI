@@ -48,7 +48,11 @@ If Xcode shows **No such module 'Expo'** or many **module map file ... not found
 - **Always open** `ios/RayCastAI.xcworkspace` (not the `.xcodeproj`).
 - Build once (Cmd+B). If the app builds and runs, the red is cosmetic; the build has the right paths.
 
-## What you should see when you tap “Start Pairing”
+## Workflow aligned with Meta's sample (CameraAccess)
+
+The Connect flow matches Meta's CameraAccess sample (also in `apps/mobile-test`): configure at launch, only `startRegistration()` (no manual URL open), and only URLs with `metaWearablesAction` passed to `handleUrl`. Copy matches the sample (Connect my glasses / Connecting...).
+
+## What you should see when you tap "Connect my glasses"
 
 1. **Meta AI app opens** (not the home/chat screen).
 2. **A connect/registration screen** — e.g. “Connect [RayCast AI]” or “Allow [RayCast AI] to connect to your glasses”, or a “Connected apps” / “Developer” screen where you can add or approve your app. Exact wording depends on the Meta AI app version.
@@ -73,9 +77,9 @@ Both are fine for Universal Links elsewhere. For MWDAT, use the custom scheme in
 
 ## SDK usage in this app
 
-- **AppDelegate.swift**: Uses `Wearables.configure()` and `Wearables.shared.handleUrl(url)` → only **import MWDATCore** is required. MWDATCamera is not used there.
-- **WearablesModule.swift**: Uses registration and camera permission APIs → **import MWDATCore** and **import MWDATCamera** (as in the file).
-- The SDK’s `startRegistration()` in 0.4.0 is **async**; we call it with `try await` inside `Task { @MainActor in ... }`. The docs’ sync `throws` example can be from an older SDK; our implementation matches the current API.
+- **AppDelegate.swift**: Uses `Wearables.configure()` at launch. For callbacks, only URLs with `metaWearablesAction` are passed to `Wearables.shared.handleUrl(url)` (custom scheme and Universal Link). **import MWDATCore** only.
+- **WearablesModule.swift**: Calls `Wearables.shared.startRegistration()` only (no manual URL open). Uses **import MWDATCore** and **import MWDATCamera** for camera permission.
+- The SDK’s `startRegistration()` in 0.4.0 is **async**; we call it with `try await` inside `Task { @MainActor in ... }`.
 
 ## Seeing [Wearables] / [MWDAT] logs
 
