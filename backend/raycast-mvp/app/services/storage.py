@@ -73,3 +73,6 @@ def list_session_files(session_id: str) -> list[dict]:
         for blob in blobs
     ]
 
+def user_path(user_id: str, path: str) -> str:
+    """Build a user-scoped Firebase storage path."""
+    return f"users/{user_id}/{path}"
