@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class ObjectLabel(BaseModel):
     label: str
@@ -15,6 +16,12 @@ class SceneDescription(BaseModel):
     key_details: list[str]
     uncertainties: list[str]
 
+class StorageUrls(BaseModel):
+    video_url: Optional[str] = None
+    audio_url: Optional[str] = None
+    frame_urls: list[str] = []
+    packet_url: Optional[str] = None
+
 class ContextPacket(BaseModel):
     session_id: str
     source_type: str
@@ -23,3 +30,14 @@ class ContextPacket(BaseModel):
     timestamp: str
     scene: SceneDescription
     transcript: str
+    storage: Optional[StorageUrls] = None
+
+class ChunkPacket(BaseModel):
+    session_id: str
+    chunk_index: int
+    source_type: str
+    timestamp: str
+    scene: SceneDescription
+    transcript: str
+    storage: Optional[StorageUrls] = None
+
