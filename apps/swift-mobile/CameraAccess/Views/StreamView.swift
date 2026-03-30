@@ -6,92 +6,115 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-//
-// StreamView.swift
-//
-// Main UI for video streaming from Meta wearable devices using the DAT SDK.
-// This view demonstrates the complete streaming API: video streaming with real-time display, photo capture,
-// and error handling.
-//
-
 import MWDATCore
 import SwiftUI
 
 struct StreamView: View {
-  @ObservedObject var viewModel: StreamSessionViewModel
-  @ObservedObject var wearablesVM: WearablesViewModel
+    @ObservedObject var viewModel: StreamSessionViewModel
+    @ObservedObject var wearablesVM: WearablesViewModel
+    var onBackToHome: (() -> Void)?
 
-  var body: some View {
-    ZStack {
-      // Black background for letterboxing/pillarboxing
-      Color.black
-        .edgesIgnoringSafeArea(.all)
+    @State private var showStoppedOverlay = false
 
-      // Video backdrop
-      if let videoFrame = viewModel.currentVideoFrame, viewModel.hasReceivedFirstFrame {
-        GeometryReader { geometry in
-          Image(uiImage: videoFrame)
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(width: geometry.size.width, height: geometry.size.height)
-            .clipped()
+    var body: some View {
+        ZStack {
+            Color.black
+                .edgesIgnoringSafeArea(.all)
+
+            if let videoFrame = viewModel.currentVideoFrame, viewModel.hasReceivedFirstFrame {
+                GeometryReader { geometry in
+                    Image(uiImage: videoFrame)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                }
+                .edgesIgnoringSafeArea(.all)
+            } else if !showStoppedOverlay {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .foregroundColor(.white)
+            }
+
+            if showStoppedOverlay {
+                stoppedOverlay
+            } else {
+                VStack {
+                    Spacer()
+                    ControlsView(viewModel: viewModel) {
+                        Task {
+                            await viewModel.stopSession()
+                            withAnimation { showStoppedOverlay = true }
+                        }
+                    }
+                }
+                .padding(.all, 24)
+            }
         }
-        .edgesIgnoringSafeArea(.all)
-      } else {
-        ProgressView()
-          .scaleEffect(1.5)
-          .foregroundColor(.white)
-      }
-
-      // Bottom controls layer
-
-      VStack {
-        Spacer()
-        ControlsView(viewModel: viewModel)
-      }
-      .padding(.all, 24)
-    }
-    .onDisappear {
-      Task {
-        if viewModel.streamingStatus != .stopped {
-          await viewModel.stopSession()
+        .onDisappear {
+            Task {
+                if viewModel.streamingStatus != .stopped {
+                    await viewModel.stopSession()
+                }
+            }
         }
-      }
+        .sheet(isPresented: $viewModel.showPhotoPreview) {
+            if let photo = viewModel.capturedPhoto {
+                PhotoPreviewView(
+                    photo: photo,
+                    onDismiss: {
+                        viewModel.dismissPhotoPreview()
+                    }
+                )
+            }
+        }
     }
-    // Show captured photos from DAT SDK in a preview sheet
-    .sheet(isPresented: $viewModel.showPhotoPreview) {
-      if let photo = viewModel.capturedPhoto {
-        PhotoPreviewView(
-          photo: photo,
-          onDismiss: {
-            viewModel.dismissPhotoPreview()
-          }
-        )
-      }
+
+    private var stoppedOverlay: some View {
+        ZStack {
+            Color.black.edgesIgnoringSafeArea(.all)
+
+            VStack(spacing: 20) {
+                Image(systemName: "checkmark.circle")
+                    .font(.system(size: 64))
+                    .foregroundColor(AppTheme.gradientEnd)
+
+                Text("Streaming Ended")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text("Your session has been saved.")
+                    .font(.system(size: 15))
+                    .foregroundColor(.white.opacity(0.7))
+
+                GradientButton(title: "Back to Home", variant: .primary) {
+                    showStoppedOverlay = false
+                    onBackToHome?()
+                }
+                .padding(.top, 16)
+                .padding(.horizontal, 24)
+            }
+        }
     }
-  }
 }
 
-// Extracted controls for clarity
 struct ControlsView: View {
-  @ObservedObject var viewModel: StreamSessionViewModel
-  var body: some View {
-    // Controls row
-    HStack(spacing: 8) {
-      CustomButton(
-        title: "Stop streaming",
-        style: .destructive,
-        isDisabled: false
-      ) {
-        Task {
-          await viewModel.stopSession()
-        }
-      }
+    @ObservedObject var viewModel: StreamSessionViewModel
+    var onStop: () -> Void
 
-      // Photo button
-      CircleButton(icon: "camera.fill", text: nil) {
-        viewModel.capturePhoto()
-      }
+    var body: some View {
+        HStack(spacing: 8) {
+            CustomButton(
+                title: "Stop streaming",
+                style: .destructive,
+                isDisabled: false
+            ) {
+                onStop()
+            }
+
+            CircleButton(icon: "camera.fill", text: nil) {
+                viewModel.capturePhoto()
+            }
+        }
     }
-  }
 }

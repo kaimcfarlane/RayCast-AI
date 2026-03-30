@@ -33,6 +33,16 @@
 		E6DA451E2E79A63100E3F688 /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DA45172E79A63100E3F688 /* CardView.swift */; };
 		E6DA451F2E79A63100E3F688 /* MockDeviceKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DA451A2E79A63100E3F688 /* MockDeviceKitView.swift */; };
 		E6FD3BCE2EB4D53A00E7FE5D /* NonStreamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FD3BCD2EB4D53A00E7FE5D /* NonStreamView.swift */; };
+		CAFE001100000000DEADBEEF /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000100000000DEADBEEF /* Theme.swift */; };
+		CAFE001200000000DEADBEEF /* GradientButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000200000000DEADBEEF /* GradientButton.swift */; };
+		CAFE001300000000DEADBEEF /* TaskCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000300000000DEADBEEF /* TaskCardView.swift */; };
+		CAFE001400000000DEADBEEF /* MenuOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000400000000DEADBEEF /* MenuOverlayView.swift */; };
+		CAFE001500000000DEADBEEF /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000500000000DEADBEEF /* WelcomeView.swift */; };
+		CAFE001600000000DEADBEEF /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000600000000DEADBEEF /* ConnectView.swift */; };
+		CAFE001700000000DEADBEEF /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000700000000DEADBEEF /* DashboardView.swift */; };
+		CAFE001800000000DEADBEEF /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000800000000DEADBEEF /* HistoryView.swift */; };
+		CAFE001900000000DEADBEEF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000900000000DEADBEEF /* SettingsView.swift */; };
+		CAFE002000000000DEADBEEF /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE001000000000DEADBEEF /* RootTabView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -86,6 +96,16 @@
 		E6DA45182E79A63100E3F688 /* MockDeviceCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDeviceCardView.swift; sourceTree = "<group>"; };
 		E6DA451A2E79A63100E3F688 /* MockDeviceKitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDeviceKitView.swift; sourceTree = "<group>"; };
 		E6FD3BCD2EB4D53A00E7FE5D /* NonStreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonStreamView.swift; sourceTree = "<group>"; };
+		CAFE000100000000DEADBEEF /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		CAFE000200000000DEADBEEF /* GradientButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientButton.swift; sourceTree = "<group>"; };
+		CAFE000300000000DEADBEEF /* TaskCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskCardView.swift; sourceTree = "<group>"; };
+		CAFE000400000000DEADBEEF /* MenuOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuOverlayView.swift; sourceTree = "<group>"; };
+		CAFE000500000000DEADBEEF /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		CAFE000600000000DEADBEEF /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
+		CAFE000700000000DEADBEEF /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		CAFE000800000000DEADBEEF /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		CAFE000900000000DEADBEEF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		CAFE001000000000DEADBEEF /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -148,14 +168,20 @@
 			children = (
 				8FFD5FF42E8422580035E446 /* Components */,
 				E6DA451B2E79A63100E3F688 /* MockDeviceKit */,
+				CAFE000600000000DEADBEEF /* ConnectView.swift */,
+				CAFE000700000000DEADBEEF /* DashboardView.swift */,
 				8FFD605E2E84A2F70035E446 /* DebugMenuView.swift */,
+				CAFE000800000000DEADBEEF /* HistoryView.swift */,
 				8FD96B722E6F0A9800F56AB1 /* HomeScreenView.swift */,
 				8FFD605F2E84A2F70035E446 /* MainAppView.swift */,
+				E6FD3BCD2EB4D53A00E7FE5D /* NonStreamView.swift */,
 				8FD96B742E6F0A9800F56AB1 /* PhotoPreviewView.swift */,
 				8FFD60532E849D0D0035E446 /* RegistrationView.swift */,
+				CAFE001000000000DEADBEEF /* RootTabView.swift */,
+				CAFE000900000000DEADBEEF /* SettingsView.swift */,
 				8FD96B752E6F0A9800F56AB1 /* StreamSessionView.swift */,
 				E6A188472EB918740097D0E1 /* StreamView.swift */,
-				E6FD3BCD2EB4D53A00E7FE5D /* NonStreamView.swift */,
+				CAFE000500000000DEADBEEF /* WelcomeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -169,6 +195,7 @@
 				8FD96B782E6F0A9800F56AB1 /* CameraAccess.entitlements */,
 				8FD96B792E6F0A9800F56AB1 /* CameraAccessApp.swift */,
 				8FD96B7B2E6F0A9800F56AB1 /* Info.plist */,
+				CAFE000100000000DEADBEEF /* Theme.swift */,
 			);
 			path = CameraAccess;
 			sourceTree = "<group>";
@@ -176,11 +203,14 @@
 		8FFD5FF42E8422580035E446 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				8FFD60322E8434070035E446 /* MediaPickerView.swift */,
-				8FFD60332E8434070035E446 /* StatusText.swift */,
+				E6DA45172E79A63100E3F688 /* CardView.swift */,
 				8FFD5FF22E8422580035E446 /* CircleButton.swift */,
 				8FFD5FF32E8422580035E446 /* CustomButton.swift */,
-				E6DA45172E79A63100E3F688 /* CardView.swift */,
+				CAFE000200000000DEADBEEF /* GradientButton.swift */,
+				8FFD60322E8434070035E446 /* MediaPickerView.swift */,
+				CAFE000400000000DEADBEEF /* MenuOverlayView.swift */,
+				8FFD60332E8434070035E446 /* StatusText.swift */,
+				CAFE000300000000DEADBEEF /* TaskCardView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -332,6 +362,16 @@
 				8FFD5FF52E8422580035E446 /* CircleButton.swift in Sources */,
 				8FFD5FF62E8422580035E446 /* CustomButton.swift in Sources */,
 				E6FD3BCE2EB4D53A00E7FE5D /* NonStreamView.swift in Sources */,
+				CAFE001100000000DEADBEEF /* Theme.swift in Sources */,
+				CAFE001200000000DEADBEEF /* GradientButton.swift in Sources */,
+				CAFE001300000000DEADBEEF /* TaskCardView.swift in Sources */,
+				CAFE001400000000DEADBEEF /* MenuOverlayView.swift in Sources */,
+				CAFE001500000000DEADBEEF /* WelcomeView.swift in Sources */,
+				CAFE001600000000DEADBEEF /* ConnectView.swift in Sources */,
+				CAFE001700000000DEADBEEF /* DashboardView.swift in Sources */,
+				CAFE001800000000DEADBEEF /* HistoryView.swift in Sources */,
+				CAFE001900000000DEADBEEF /* SettingsView.swift in Sources */,
+				CAFE002000000000DEADBEEF /* RootTabView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

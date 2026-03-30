@@ -6,41 +6,36 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-//
-// StreamSessionView.swift
-//
-//
-
 import MWDATCore
 import SwiftUI
 
 struct StreamSessionView: View {
-  let wearables: WearablesInterface
-  @ObservedObject private var wearablesViewModel: WearablesViewModel
-  @StateObject private var viewModel: StreamSessionViewModel
+    let wearables: WearablesInterface
+    @ObservedObject private var wearablesViewModel: WearablesViewModel
+    @StateObject private var viewModel: StreamSessionViewModel
+    var onBackToHome: (() -> Void)?
 
-  init(wearables: WearablesInterface, wearablesVM: WearablesViewModel) {
-    self.wearables = wearables
-    self.wearablesViewModel = wearablesVM
-    self._viewModel = StateObject(wrappedValue: StreamSessionViewModel(wearables: wearables))
-  }
+    init(wearables: WearablesInterface, wearablesVM: WearablesViewModel, onBackToHome: (() -> Void)? = nil) {
+        self.wearables = wearables
+        self.wearablesViewModel = wearablesVM
+        self.onBackToHome = onBackToHome
+        self._viewModel = StateObject(wrappedValue: StreamSessionViewModel(wearables: wearables))
+    }
 
-  var body: some View {
-    ZStack {
-      if viewModel.isStreaming {
-        // Full-screen video view with streaming controls
-        StreamView(viewModel: viewModel, wearablesVM: wearablesViewModel)
-      } else {
-        // Pre-streaming setup view with permissions and start button
-        NonStreamView(viewModel: viewModel, wearablesVM: wearablesViewModel)
-      }
+    var body: some View {
+        ZStack {
+            if viewModel.isStreaming {
+                StreamView(viewModel: viewModel, wearablesVM: wearablesViewModel, onBackToHome: onBackToHome)
+            } else {
+                NonStreamView(viewModel: viewModel, wearablesVM: wearablesViewModel, onBackToHome: onBackToHome)
+            }
+        }
+        .alert("Error", isPresented: $viewModel.showError) {
+            Button("OK") {
+                viewModel.dismissError()
+            }
+        } message: {
+            Text(viewModel.errorMessage)
+        }
     }
-    .alert("Error", isPresented: $viewModel.showError) {
-      Button("OK") {
-        viewModel.dismissError()
-      }
-    } message: {
-      Text(viewModel.errorMessage)
-    }
-  }
 }

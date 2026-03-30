@@ -1,37 +1,62 @@
-/*
- * Copyright (c) Meta Platforms, Inc. and affiliates.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-//
-// MainAppView.swift
-//
-// Central navigation hub that displays different views based on DAT SDK registration and device states.
-// When unregistered, shows the registration flow. When registered, shows the device selection screen
-// for choosing which Meta wearable device to stream from.
-//
-
 import MWDATCore
 import SwiftUI
 
+enum AppScreen {
+    case welcome
+    case connect
+    case tabs
+}
+
 struct MainAppView: View {
-  let wearables: WearablesInterface
-  @ObservedObject private var viewModel: WearablesViewModel
+    let wearables: WearablesInterface
+    @ObservedObject private var viewModel: WearablesViewModel
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var currentScreen: AppScreen = .welcome
+    @State private var selectedTab: AppTab = .home
 
-  init(wearables: WearablesInterface, viewModel: WearablesViewModel) {
-    self.wearables = wearables
-    self.viewModel = viewModel
-  }
-
-  var body: some View {
-    if viewModel.registrationState == .registered || viewModel.hasMockDevice {
-      StreamSessionView(wearables: wearables, wearablesVM: viewModel)
-    } else {
-      // User not registered - show registration/onboarding flow
-      HomeScreenView(viewModel: viewModel)
+    init(wearables: WearablesInterface, viewModel: WearablesViewModel) {
+        self.wearables = wearables
+        self.viewModel = viewModel
     }
-  }
+
+    var body: some View {
+        Group {
+            switch currentScreen {
+            case .welcome:
+                WelcomeView {
+                    withAnimation { currentScreen = .connect }
+                }
+            case .connect:
+                ConnectView(viewModel: viewModel) {
+                    hasCompletedOnboarding = true
+                    withAnimation { currentScreen = .tabs }
+                }
+            case .tabs:
+                RootTabView(
+                    wearables: wearables,
+                    wearablesVM: viewModel,
+                    selectedTab: $selectedTab,
+                    onNavigateToConnect: {
+                        withAnimation { currentScreen = .connect }
+                    }
+                )
+            }
+        }
+        .onAppear {
+            if hasCompletedOnboarding || viewModel.registrationState == .registered {
+                currentScreen = .tabs
+            } else {
+                currentScreen = .welcome
+            }
+        }
+        .onChange(of: viewModel.registrationState) { oldState, newState in
+            if newState == .registered && currentScreen == .connect {
+                hasCompletedOnboarding = true
+                withAnimation {
+                    currentScreen = .tabs
+                    selectedTab = .live
+                }
+            }
+        }
+    }
 }
