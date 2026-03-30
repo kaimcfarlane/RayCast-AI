@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenLayout } from '@/components/screen-layout';
@@ -18,11 +19,13 @@ function SettingsIcon({ name }: { name: keyof typeof Ionicons.glyphMap }) {
 }
 
 export default function SettingsScreen() {
+  const router = useRouter();
+
   return (
     <ScreenLayout title="Settings" subtitle="Preferences & account">
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Device</Text>
-        <TouchableOpacity style={styles.row}>
+        <TouchableOpacity style={styles.row} onPress={() => router.push('/connect')} activeOpacity={0.7}>
           <SettingsIcon name="glasses-outline" />
           <Text style={styles.rowLabel}>Connect glasses</Text>
           <Ionicons name="chevron-forward" size={20} color={DarkTheme.textMuted} />
