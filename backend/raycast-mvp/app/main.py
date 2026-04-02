@@ -118,11 +118,14 @@ async def analyze_stream(
         frame_bytes: list[bytes] = []
         for f in frames:
             data = await f.read()
-            if data:
+            if data and len(data) > 100:
                 frame_bytes.append(data)
 
         if not frame_bytes:
-            raise HTTPException(status_code=422, detail="All uploaded frames were empty")
+            raise HTTPException(
+                status_code=422,
+                detail=f"No valid frames received ({len(frames)} uploads, all empty or too small)",
+            )
 
         scene_dict = scene_description(frame_bytes)
         scene = SceneDescription(**scene_dict)
