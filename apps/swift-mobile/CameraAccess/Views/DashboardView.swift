@@ -31,8 +31,8 @@ enum TaskMode: String, CaseIterable, Identifiable {
 
 struct DashboardView: View {
     @ObservedObject var wearablesVM: WearablesViewModel
+    @Binding var selectedTask: TaskMode?
     var onStartSession: () -> Void
-    @State private var selectedTask: TaskMode? = nil
     @State private var menuVisible = false
 
     private var isConnected: Bool {

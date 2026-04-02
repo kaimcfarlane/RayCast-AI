@@ -39,8 +39,14 @@ struct StreamView: View {
             if showStoppedOverlay {
                 stoppedOverlay
             } else {
-                VStack {
+                VStack(spacing: 0) {
+                    taskModeBadge
                     Spacer()
+                    AnalysisOverlayView(
+                        messages: viewModel.analysisMessages,
+                        isAnalyzing: viewModel.isAnalyzing,
+                        taskMode: viewModel.taskMode
+                    )
                     ControlsView(viewModel: viewModel) {
                         Task {
                             await viewModel.stopSession()
@@ -67,6 +73,26 @@ struct StreamView: View {
                     }
                 )
             }
+        }
+    }
+
+    private var taskModeBadge: some View {
+        HStack {
+            if let mode = viewModel.taskMode {
+                HStack(spacing: 6) {
+                    Image(systemName: mode.icon)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(mode.label)
+                        .font(.system(size: 12, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.black.opacity(0.5))
+                .background(.ultraThinMaterial.opacity(0.3))
+                .clipShape(Capsule())
+            }
+            Spacer()
         }
     }
 

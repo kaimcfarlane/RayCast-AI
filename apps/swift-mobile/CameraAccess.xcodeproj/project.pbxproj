@@ -43,6 +43,9 @@
 		CAFE001800000000DEADBEEF /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000800000000DEADBEEF /* HistoryView.swift */; };
 		CAFE001900000000DEADBEEF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000900000000DEADBEEF /* SettingsView.swift */; };
 		CAFE002000000000DEADBEEF /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE001000000000DEADBEEF /* RootTabView.swift */; };
+		CAFE00B100000000DEADBEEF /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE00A100000000DEADBEEF /* APIService.swift */; };
+		CAFE00B200000000DEADBEEF /* AudioPlayerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE00A200000000DEADBEEF /* AudioPlayerService.swift */; };
+		CAFE00B300000000DEADBEEF /* AnalysisOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE00A300000000DEADBEEF /* AnalysisOverlayView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,6 +109,9 @@
 		CAFE000800000000DEADBEEF /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		CAFE000900000000DEADBEEF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		CAFE001000000000DEADBEEF /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		CAFE00A100000000DEADBEEF /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		CAFE00A200000000DEADBEEF /* AudioPlayerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerService.swift; sourceTree = "<group>"; };
+		CAFE00A300000000DEADBEEF /* AnalysisOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisOverlayView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -189,6 +195,7 @@
 		8FD96B7D2E6F0A9800F56AB1 /* CameraAccess */ = {
 			isa = PBXGroup;
 			children = (
+				CAFE00C100000000DEADBEEF /* Services */,
 				8FD96B702E6F0A9800F56AB1 /* ViewModels */,
 				8FD96B762E6F0A9800F56AB1 /* Views */,
 				8FD96B772E6F0A9800F56AB1 /* Assets.xcassets */,
@@ -200,9 +207,19 @@
 			path = CameraAccess;
 			sourceTree = "<group>";
 		};
+		CAFE00C100000000DEADBEEF /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				CAFE00A100000000DEADBEEF /* APIService.swift */,
+				CAFE00A200000000DEADBEEF /* AudioPlayerService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		8FFD5FF42E8422580035E446 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				CAFE00A300000000DEADBEEF /* AnalysisOverlayView.swift */,
 				E6DA45172E79A63100E3F688 /* CardView.swift */,
 				8FFD5FF22E8422580035E446 /* CircleButton.swift */,
 				8FFD5FF32E8422580035E446 /* CustomButton.swift */,
@@ -372,6 +389,9 @@
 				CAFE001800000000DEADBEEF /* HistoryView.swift in Sources */,
 				CAFE001900000000DEADBEEF /* SettingsView.swift in Sources */,
 				CAFE002000000000DEADBEEF /* RootTabView.swift in Sources */,
+				CAFE00B100000000DEADBEEF /* APIService.swift in Sources */,
+				CAFE00B200000000DEADBEEF /* AudioPlayerService.swift in Sources */,
+				CAFE00B300000000DEADBEEF /* AnalysisOverlayView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

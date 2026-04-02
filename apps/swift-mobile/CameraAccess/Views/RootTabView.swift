@@ -10,10 +10,11 @@ struct RootTabView: View {
     @ObservedObject var wearablesVM: WearablesViewModel
     @Binding var selectedTab: AppTab
     var onNavigateToConnect: () -> Void
+    @State private var selectedTask: TaskMode? = nil
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            DashboardView(wearablesVM: wearablesVM) {
+            DashboardView(wearablesVM: wearablesVM, selectedTask: $selectedTask) {
                 selectedTab = .live
             }
             .tabItem {
@@ -24,6 +25,7 @@ struct RootTabView: View {
             StreamSessionView(
                 wearables: wearables,
                 wearablesVM: wearablesVM,
+                taskMode: selectedTask,
                 onBackToHome: { selectedTab = .home }
             )
             .tabItem {

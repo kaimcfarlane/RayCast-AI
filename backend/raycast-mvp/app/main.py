@@ -1,11 +1,15 @@
-import json, shutil, os, webbrowser
+import base64, json, shutil, os, webbrowser
 from datetime import datetime
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from typing import Annotated
+from fastapi import FastAPI, Form, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.services.vision import extract_frames, scene_description
 from app.services.audio import extract_audio, transcribe_audio
-from app.models.schemas import ContextPacket
+from app.services.reasoning import reason
+from app.services.tts import generate_speech
+from app.services.delta import scene_changed
+from app.models.schemas import ContextPacket, SceneDescription, StreamAnalysisResponse
 
 
 @asynccontextmanager
@@ -37,7 +41,8 @@ def root():
         "version": "0.1.0",
         "docs": "/docs",
         "health": "/health",
-        "analyze": "POST /analyze-video",
+        "analyze_video": "POST /analyze-video",
+        "analyze_stream": "POST /analyze-stream",
         "mock": "GET /mock",
     }
 
@@ -88,6 +93,64 @@ async def analyze_video(file: UploadFile = File(...)):
         # Clean up temp files
         if os.path.exists(temp_video):
             os.remove(temp_video)
+
+
+VALID_TASK_MODES = {"chess", "navigate", "findObject", "readText", "describe", "general"}
+
+
+@server.post("/analyze-stream", response_model=StreamAnalysisResponse)
+async def analyze_stream(
+    task_mode: Annotated[str, Form()],
+    session_id: Annotated[str, Form()],
+    frames: list[UploadFile] = File(...),
+):
+    """Accept JPEG frames from a live stream, run perception + reasoning pipeline.
+
+    Returns analysis text and TTS audio only when the scene has changed.
+    """
+    if task_mode not in VALID_TASK_MODES:
+        raise HTTPException(status_code=422, detail=f"Invalid task_mode: {task_mode}")
+
+    if not frames or len(frames) > 12:
+        raise HTTPException(status_code=422, detail="Provide 1-12 JPEG frames")
+
+    try:
+        frame_bytes: list[bytes] = []
+        for f in frames:
+            data = await f.read()
+            if data:
+                frame_bytes.append(data)
+
+        if not frame_bytes:
+            raise HTTPException(status_code=422, detail="All uploaded frames were empty")
+
+        scene_dict = scene_description(frame_bytes)
+        scene = SceneDescription(**scene_dict)
+
+        changed = scene_changed(session_id, scene)
+
+        analysis_text: str | None = None
+        audio_b64: str | None = None
+
+        if changed:
+            analysis_text = reason(scene, task_mode)
+            audio_bytes = generate_speech(analysis_text)
+            audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+
+        return StreamAnalysisResponse(
+            session_id=session_id,
+            changed=changed,
+            scene=scene if changed else None,
+            analysis_text=analysis_text,
+            audio_base64=audio_b64,
+            task_mode=task_mode,
+            timestamp=datetime.now().isoformat(),
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @server.get("/mock")

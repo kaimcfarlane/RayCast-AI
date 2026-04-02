@@ -24,6 +24,12 @@ enum StreamingStatus {
   case stopped
 }
 
+struct AnalysisMessage: Identifiable {
+  let id = UUID()
+  let text: String
+  let timestamp: Date
+}
+
 @MainActor
 class StreamSessionViewModel: ObservableObject {
   @Published var currentVideoFrame: UIImage?
@@ -33,6 +39,11 @@ class StreamSessionViewModel: ObservableObject {
   @Published var errorMessage: String = ""
   @Published var hasActiveDevice: Bool = false
 
+  // Analysis pipeline state
+  @Published var analysisMessages: [AnalysisMessage] = []
+  @Published var isAnalyzing: Bool = false
+  @Published var taskMode: TaskMode?
+
   var isStreaming: Bool {
     streamingStatus != .stopped
   }
@@ -40,9 +51,10 @@ class StreamSessionViewModel: ObservableObject {
   // Photo capture properties
   @Published var capturedPhoto: UIImage?
   @Published var showPhotoPreview: Bool = false
-  // The core DAT SDK StreamSession - handles all streaming operations
+
+  let audioPlayer = AudioPlayerService()
+
   private var streamSession: StreamSession
-  // Listener tokens are used to manage DAT SDK event subscriptions
   private var stateListenerToken: AnyListenerToken?
   private var videoFrameListenerToken: AnyListenerToken?
   private var errorListenerToken: AnyListenerToken?
@@ -51,9 +63,19 @@ class StreamSessionViewModel: ObservableObject {
   private let deviceSelector: AutoDeviceSelector
   private var deviceMonitorTask: Task<Void, Never>?
 
+  // Frame ring buffer: stores the most recent frames for sampling
+  private let bufferCapacity = 120
+  private var frameBuffer: [UIImage] = []
+  private var bufferIndex = 0
+
+  // Analysis timing
+  private var analysisTimer: Task<Void, Never>?
+  private let captureIntervalSeconds: TimeInterval = 5.0
+  private let frameSampleCount = 6
+  private let sessionId = "session-\(UUID().uuidString.prefix(8))"
+
   init(wearables: WearablesInterface) {
     self.wearables = wearables
-    // Let the SDK auto-select from available devices
     self.deviceSelector = AutoDeviceSelector(wearables: wearables)
     let config = StreamSessionConfig(
       videoCodec: VideoCodec.raw,
@@ -61,29 +83,27 @@ class StreamSessionViewModel: ObservableObject {
       frameRate: 24)
     streamSession = StreamSession(streamSessionConfig: config, deviceSelector: deviceSelector)
 
-    // Monitor device availability
+    frameBuffer.reserveCapacity(bufferCapacity)
+
     deviceMonitorTask = Task { @MainActor in
       for await device in deviceSelector.activeDeviceStream() {
         self.hasActiveDevice = device != nil
       }
     }
 
-    // Subscribe to session state changes using the DAT SDK listener pattern
-    // State changes tell us when streaming starts, stops, or encounters issues
     stateListenerToken = streamSession.statePublisher.listen { [weak self] state in
       Task { @MainActor [weak self] in
         self?.updateStatusFromState(state)
       }
     }
 
-    // Subscribe to video frames from the device camera
-    // Each VideoFrame contains the raw camera data that we convert to UIImage
     videoFrameListenerToken = streamSession.videoFramePublisher.listen { [weak self] videoFrame in
       Task { @MainActor [weak self] in
         guard let self else { return }
 
         if let image = videoFrame.makeUIImage() {
           self.currentVideoFrame = image
+          self.pushFrameToBuffer(image)
           if !self.hasReceivedFirstFrame {
             self.hasReceivedFirstFrame = true
           }
@@ -91,8 +111,6 @@ class StreamSessionViewModel: ObservableObject {
       }
     }
 
-    // Subscribe to streaming errors
-    // Errors include device disconnection, streaming failures, etc.
     errorListenerToken = streamSession.errorPublisher.listen { [weak self] error in
       Task { @MainActor [weak self] in
         guard let self else { return }
@@ -105,8 +123,6 @@ class StreamSessionViewModel: ObservableObject {
 
     updateStatusFromState(streamSession.state)
 
-    // Subscribe to photo capture events
-    // PhotoData contains the captured image in the requested format (JPEG/HEIC)
     photoDataListenerToken = streamSession.photoDataPublisher.listen { [weak self] photoData in
       Task { @MainActor [weak self] in
         guard let self else { return }
@@ -117,6 +133,92 @@ class StreamSessionViewModel: ObservableObject {
       }
     }
   }
+
+  // MARK: - Frame ring buffer
+
+  private func pushFrameToBuffer(_ image: UIImage) {
+    if frameBuffer.count < bufferCapacity {
+      frameBuffer.append(image)
+    } else {
+      frameBuffer[bufferIndex] = image
+    }
+    bufferIndex = (bufferIndex + 1) % bufferCapacity
+  }
+
+  private func sampleFrames() -> [UIImage] {
+    let count = frameBuffer.count
+    guard count >= frameSampleCount else { return frameBuffer }
+
+    var samples: [UIImage] = []
+    for i in 0..<frameSampleCount {
+      let idx = i * (count - 1) / max(frameSampleCount - 1, 1)
+      samples.append(frameBuffer[idx])
+    }
+    return samples
+  }
+
+  // MARK: - Analysis pipeline
+
+  private func startAnalysisLoop() {
+    analysisTimer?.cancel()
+    analysisTimer = Task { @MainActor [weak self] in
+      guard let self else { return }
+      try? await Task.sleep(for: .seconds(self.captureIntervalSeconds))
+
+      while !Task.isCancelled {
+        guard self.streamingStatus == .streaming else { break }
+        guard !self.isAnalyzing, !self.audioPlayer.isPlaying else {
+          try? await Task.sleep(for: .milliseconds(500))
+          continue
+        }
+
+        await self.runAnalysisCycle()
+        try? await Task.sleep(for: .seconds(self.captureIntervalSeconds))
+      }
+    }
+  }
+
+  private func stopAnalysisLoop() {
+    analysisTimer?.cancel()
+    analysisTimer = nil
+  }
+
+  private func runAnalysisCycle() async {
+    let mode = taskMode ?? .general
+    let frames = sampleFrames()
+    guard !frames.isEmpty else { return }
+
+    isAnalyzing = true
+    defer { isAnalyzing = false }
+
+    do {
+      let response = try await APIService.shared.analyzeStream(
+        frames: frames,
+        taskMode: mode.rawValue,
+        sessionId: sessionId
+      )
+
+      guard response.changed else { return }
+
+      if let text = response.analysisText, !text.isEmpty {
+        let message = AnalysisMessage(text: text, timestamp: Date())
+        analysisMessages.append(message)
+
+        // Keep only the last 10 messages in memory
+        if analysisMessages.count > 10 {
+          analysisMessages.removeFirst(analysisMessages.count - 10)
+        }
+      }
+
+      if let audioBase64 = response.audioBase64, !audioBase64.isEmpty {
+        audioPlayer.playBase64Audio(audioBase64)
+      }
+    } catch {
+      // Network errors during analysis are non-fatal — the next cycle will retry
+    }
+  }
+
+  // MARK: - Streaming lifecycle
 
   func handleStartStreaming() async {
     let permission = Permission.camera
@@ -147,7 +249,9 @@ class StreamSessionViewModel: ObservableObject {
   }
 
   func stopSession() async {
+    stopAnalysisLoop()
     await streamSession.stop()
+    audioPlayer.stop()
   }
 
   func dismissError() {
@@ -169,10 +273,12 @@ class StreamSessionViewModel: ObservableObject {
     case .stopped:
       currentVideoFrame = nil
       streamingStatus = .stopped
+      stopAnalysisLoop()
     case .waitingForDevice, .starting, .stopping, .paused:
       streamingStatus = .waiting
     case .streaming:
       streamingStatus = .streaming
+      startAnalysisLoop()
     }
   }
 

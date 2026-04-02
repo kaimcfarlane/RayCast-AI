@@ -13,11 +13,18 @@ struct StreamSessionView: View {
     let wearables: WearablesInterface
     @ObservedObject private var wearablesViewModel: WearablesViewModel
     @StateObject private var viewModel: StreamSessionViewModel
+    let taskMode: TaskMode?
     var onBackToHome: (() -> Void)?
 
-    init(wearables: WearablesInterface, wearablesVM: WearablesViewModel, onBackToHome: (() -> Void)? = nil) {
+    init(
+        wearables: WearablesInterface,
+        wearablesVM: WearablesViewModel,
+        taskMode: TaskMode? = nil,
+        onBackToHome: (() -> Void)? = nil
+    ) {
         self.wearables = wearables
         self.wearablesViewModel = wearablesVM
+        self.taskMode = taskMode
         self.onBackToHome = onBackToHome
         self._viewModel = StateObject(wrappedValue: StreamSessionViewModel(wearables: wearables))
     }
@@ -29,6 +36,12 @@ struct StreamSessionView: View {
             } else {
                 NonStreamView(viewModel: viewModel, wearablesVM: wearablesViewModel, onBackToHome: onBackToHome)
             }
+        }
+        .onChange(of: taskMode) { _, newMode in
+            viewModel.taskMode = newMode
+        }
+        .onAppear {
+            viewModel.taskMode = taskMode
         }
         .alert("Error", isPresented: $viewModel.showError) {
             Button("OK") {
