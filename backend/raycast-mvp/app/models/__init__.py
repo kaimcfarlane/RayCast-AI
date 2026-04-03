@@ -3,6 +3,7 @@ from .schemas import (
     SceneDescription,
     ObjectLabel,
     TextInScene,
+    StreamAnalysisResponse,
 )
 
 __all__ = [
@@ -10,4 +11,5 @@ __all__ = [
     "SceneDescription",
     "ObjectLabel",
     "TextInScene",
+    "StreamAnalysisResponse",
 ]
