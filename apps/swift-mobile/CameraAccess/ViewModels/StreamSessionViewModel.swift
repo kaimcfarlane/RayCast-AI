@@ -24,10 +24,16 @@ enum StreamingStatus {
   case stopped
 }
 
+enum MessageSender {
+  case user
+  case assistant
+}
+
 struct AnalysisMessage: Identifiable {
   let id = UUID()
   let text: String
   let timestamp: Date
+  let sender: MessageSender
 }
 
 @MainActor
@@ -43,6 +49,14 @@ class StreamSessionViewModel: ObservableObject {
   @Published var analysisMessages: [AnalysisMessage] = []
   @Published var isAnalyzing: Bool = false
   @Published var taskMode: TaskMode?
+  @Published var streamError: String?
+
+  // Talk mode state
+  @Published var isTalkProcessing: Bool = false
+
+  let speechService = SpeechRecognitionService()
+
+  var isTalkMode: Bool { taskMode == .general }
 
   var isStreaming: Bool {
     streamingStatus != .stopped
@@ -160,13 +174,14 @@ class StreamSessionViewModel: ObservableObject {
   // MARK: - Analysis pipeline
 
   private func startAnalysisLoop() {
+    guard !isTalkMode else { return }
     analysisTimer?.cancel()
     analysisTimer = Task { @MainActor [weak self] in
       guard let self else { return }
       try? await Task.sleep(for: .seconds(self.captureIntervalSeconds))
 
       while !Task.isCancelled {
-        guard self.streamingStatus == .streaming else { break }
+        guard self.streamingStatus == .streaming, !self.isTalkMode else { break }
         guard !self.isAnalyzing, !self.audioPlayer.isPlaying else {
           try? await Task.sleep(for: .milliseconds(500))
           continue
@@ -201,13 +216,7 @@ class StreamSessionViewModel: ObservableObject {
       guard response.changed else { return }
 
       if let text = response.analysisText, !text.isEmpty {
-        let message = AnalysisMessage(text: text, timestamp: Date())
-        analysisMessages.append(message)
-
-        // Keep only the last 10 messages in memory
-        if analysisMessages.count > 10 {
-          analysisMessages.removeFirst(analysisMessages.count - 10)
-        }
+        appendMessage(text, sender: .assistant)
       }
 
       if let audioBase64 = response.audioBase64, !audioBase64.isEmpty {
@@ -215,6 +224,7 @@ class StreamSessionViewModel: ObservableObject {
       }
     } catch {
       print("[RayCastAI] Analysis cycle error: \(error.localizedDescription)")
+      showStreamError(error.localizedDescription)
     }
   }
 
@@ -250,6 +260,7 @@ class StreamSessionViewModel: ObservableObject {
 
   func stopSession() async {
     stopAnalysisLoop()
+    speechService.stopListening()
     await streamSession.stop()
     audioPlayer.stop()
   }
@@ -257,6 +268,73 @@ class StreamSessionViewModel: ObservableObject {
   func dismissError() {
     showError = false
     errorMessage = ""
+  }
+
+  // MARK: - Talk mode
+
+  func toggleListening() {
+    guard isTalkMode, !isTalkProcessing, !audioPlayer.isPlaying else { return }
+
+    if speechService.isListening {
+      speechService.stopListening()
+      let text = speechService.getFinalText()
+      guard !text.isEmpty else { return }
+      Task { await handleTalkInput(text) }
+    } else {
+      speechService.startListening()
+    }
+  }
+
+  private func handleTalkInput(_ userText: String) async {
+    isTalkProcessing = true
+    defer { isTalkProcessing = false }
+
+    appendMessage(userText, sender: .user)
+
+    let frames = sampleFrames()
+    isAnalyzing = true
+    defer { isAnalyzing = false }
+
+    do {
+      let response = try await APIService.shared.chat(
+        userText: userText,
+        sessionId: sessionId,
+        frames: frames
+      )
+
+      appendMessage(response.responseText, sender: .assistant)
+
+      if let audioBase64 = response.audioBase64, !audioBase64.isEmpty {
+        audioPlayer.playBase64Audio(audioBase64)
+        while audioPlayer.isPlaying {
+          try? await Task.sleep(for: .milliseconds(200))
+        }
+        try? await Task.sleep(for: .seconds(2))
+      }
+    } catch {
+      print("[RayCastAI] Chat error: \(error.localizedDescription)")
+      showStreamError(error.localizedDescription)
+    }
+  }
+
+  // MARK: - Helpers
+
+  private func appendMessage(_ text: String, sender: MessageSender) {
+    let message = AnalysisMessage(text: text, timestamp: Date(), sender: sender)
+    analysisMessages.append(message)
+    if analysisMessages.count > 10 {
+      analysisMessages.removeFirst(analysisMessages.count - 10)
+    }
+  }
+
+  private func showStreamError(_ message: String) {
+    streamError = message
+    Task {
+      try? await Task.sleep(for: .seconds(4))
+      if streamError == message {
+        streamError = nil
+      }
+    }
   }
 
   func capturePhoto() {
