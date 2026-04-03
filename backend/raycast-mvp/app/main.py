@@ -1,5 +1,7 @@
 import base64, json, shutil, os, webbrowser
 from datetime import datetime
+from fastapi.responses import HTMLResponse
+from pathlib import Path
 from contextlib import asynccontextmanager
 from typing import Annotated
 from app.services.reasoning import reason
@@ -40,6 +42,7 @@ server = FastAPI(
                 "Processes video and audio into structured Context Packets for real-time assistance.",
     version="0.1.0",
     lifespan=lifespan,
+    docs_url=None,  # Disable default docs
     openapi_tags=[
         {"name": "General", "description": "Health checks and API info"},
         {"name": "Auth", "description": "User authentication info"},
@@ -50,6 +53,12 @@ server = FastAPI(
     ]
 )
 
+@server.get("/docs", include_in_schema=False)
+async def custom_docs():
+    html = Path("app/static/docs.html").read_text()
+    return HTMLResponse(content=html)
+
+    
 server.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
