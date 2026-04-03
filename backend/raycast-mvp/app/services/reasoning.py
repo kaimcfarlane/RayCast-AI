@@ -55,3 +55,34 @@ def reason(scene: SceneDescription, task_mode: str) -> str:
     if not text:
         return "I couldn't generate an analysis for this scene."
     return text
+
+
+CHAT_SYSTEM_PROMPT = (
+    "You are RayCast AI, a conversational assistant embedded in smart glasses. "
+    "The user is speaking to you while wearing the glasses. You can see what they see "
+    "through the scene analysis provided. Answer their question or fulfill their request "
+    "based on both what they said and what you can observe. Be conversational, helpful, "
+    "and concise (1-3 sentences). Speak naturally as if talking to them."
+)
+
+
+def chat(user_text: str, scene: SceneDescription | None = None) -> str:
+    """Handle a conversational chat request, optionally with visual context."""
+    context_parts = []
+    if scene:
+        context_parts.append(
+            f"Current scene from glasses:\n{scene.model_dump_json(indent=2)}"
+        )
+    context_parts.append(f"User said: {user_text}")
+
+    client = get_openai_client()
+    response = client.responses.create(
+        model="gpt-4o-mini",
+        instructions=CHAT_SYSTEM_PROMPT,
+        input=[{"role": "user", "content": "\n\n".join(context_parts)}],
+    )
+
+    text = (response.output_text or "").strip()
+    if not text:
+        return "I'm sorry, I couldn't understand that. Could you try again?"
+    return text

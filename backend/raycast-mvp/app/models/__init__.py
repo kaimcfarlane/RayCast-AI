@@ -4,6 +4,7 @@ from .schemas import (
     ObjectLabel,
     TextInScene,
     StreamAnalysisResponse,
+    ChatResponse,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "ObjectLabel",
     "TextInScene",
     "StreamAnalysisResponse",
+    "ChatResponse",
 ]

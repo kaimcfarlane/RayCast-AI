@@ -47,6 +47,20 @@ struct TextInSceneDTO: Codable {
     let confidence: Double
 }
 
+struct ChatResponseDTO: Codable {
+    let sessionId: String
+    let responseText: String
+    let audioBase64: String?
+    let timestamp: String
+
+    enum CodingKeys: String, CodingKey {
+        case sessionId = "session_id"
+        case responseText = "response_text"
+        case audioBase64 = "audio_base64"
+        case timestamp
+    }
+}
+
 final class APIService {
     static let shared = APIService()
 
@@ -127,6 +141,51 @@ final class APIService {
         } catch {
             return false
         }
+    }
+
+    func chat(
+        userText: String,
+        sessionId: String,
+        frames: [UIImage] = []
+    ) async throws -> ChatResponseDTO {
+        let url = URL(string: "\(baseURL)/chat")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+
+        appendFormField(to: &body, boundary: boundary, name: "user_text", value: userText)
+        appendFormField(to: &body, boundary: boundary, name: "session_id", value: sessionId)
+
+        for (index, image) in frames.enumerated() {
+            guard let jpegData = normalizedJPEGData(from: image) else { continue }
+            appendFileField(
+                to: &body,
+                boundary: boundary,
+                name: "frames",
+                filename: "frame_\(index).jpg",
+                mimeType: "image/jpeg",
+                data: jpegData
+            )
+        }
+
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = body
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let detail = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw APIError.serverError(statusCode: httpResponse.statusCode, detail: detail)
+        }
+
+        return try JSONDecoder().decode(ChatResponseDTO.self, from: data)
     }
 
     // MARK: - Image normalization

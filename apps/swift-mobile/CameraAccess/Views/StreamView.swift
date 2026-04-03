@@ -40,13 +40,27 @@ struct StreamView: View {
                 stoppedOverlay
             } else {
                 VStack(spacing: 0) {
-                    taskModeBadge
+                    HStack(alignment: .top) {
+                        taskModeBadge
+                        Spacer()
+                    }
+
+                    if let error = viewModel.streamError {
+                        ErrorBannerView(message: error)
+                            .padding(.top, 4)
+                    }
+
                     Spacer()
+
                     AnalysisOverlayView(
                         messages: viewModel.analysisMessages,
                         isAnalyzing: viewModel.isAnalyzing,
-                        taskMode: viewModel.taskMode
+                        taskMode: viewModel.taskMode,
+                        isListening: viewModel.speechService.isListening,
+                        partialTranscript: viewModel.speechService.transcribedText,
+                        streamError: viewModel.streamError
                     )
+
                     ControlsView(viewModel: viewModel) {
                         Task {
                             await viewModel.stopSession()
@@ -55,6 +69,7 @@ struct StreamView: View {
                     }
                 }
                 .padding(.all, 24)
+                .animation(.easeInOut(duration: 0.3), value: viewModel.streamError)
             }
         }
         .onDisappear {
@@ -76,23 +91,21 @@ struct StreamView: View {
         }
     }
 
+    @ViewBuilder
     private var taskModeBadge: some View {
-        HStack {
-            if let mode = viewModel.taskMode {
-                HStack(spacing: 6) {
-                    Image(systemName: mode.icon)
-                        .font(.system(size: 12, weight: .semibold))
-                    Text(mode.label)
-                        .font(.system(size: 12, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color.black.opacity(0.5))
-                .background(.ultraThinMaterial.opacity(0.3))
-                .clipShape(Capsule())
+        if let mode = viewModel.taskMode {
+            HStack(spacing: 6) {
+                Image(systemName: mode.icon)
+                    .font(.system(size: 12, weight: .semibold))
+                Text(mode.label)
+                    .font(.system(size: 12, weight: .semibold))
             }
-            Spacer()
+            .foregroundColor(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.black.opacity(0.5))
+            .background(.ultraThinMaterial.opacity(0.3))
+            .clipShape(Capsule())
         }
     }
 
@@ -128,6 +141,10 @@ struct ControlsView: View {
     @ObservedObject var viewModel: StreamSessionViewModel
     var onStop: () -> Void
 
+    private var isTalkBusy: Bool {
+        viewModel.isTalkProcessing || viewModel.audioPlayer.isPlaying
+    }
+
     var body: some View {
         HStack(spacing: 8) {
             CustomButton(
@@ -138,8 +155,19 @@ struct ControlsView: View {
                 onStop()
             }
 
-            CircleButton(icon: "camera.fill", text: nil) {
-                viewModel.capturePhoto()
+            if viewModel.isTalkMode {
+                CircleButton(
+                    icon: viewModel.speechService.isListening ? "mic.slash.fill" : "mic.fill",
+                    text: nil
+                ) {
+                    viewModel.toggleListening()
+                }
+                .opacity(isTalkBusy ? 0.4 : 1.0)
+                .disabled(isTalkBusy)
+            } else {
+                CircleButton(icon: "camera.fill", text: nil) {
+                    viewModel.capturePhoto()
+                }
             }
         }
     }

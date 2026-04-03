@@ -13,7 +13,7 @@ enum TaskMode: String, CaseIterable, Identifiable {
         case .findObject: return "magnifyingglass"
         case .readText: return "book"
         case .describe: return "bubble.left"
-        case .general: return "lightbulb"
+        case .general: return "person.wave.2"
         }
     }
 
@@ -24,7 +24,7 @@ enum TaskMode: String, CaseIterable, Identifiable {
         case .findObject: return "Find Object"
         case .readText: return "Read Text"
         case .describe: return "Describe"
-        case .general: return "General"
+        case .general: return "Talk"
         }
     }
 }

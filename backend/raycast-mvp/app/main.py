@@ -2,10 +2,10 @@ import base64, json, shutil, os, webbrowser
 from datetime import datetime
 from contextlib import asynccontextmanager
 from typing import Annotated
-from app.services.reasoning import reason
+from app.services.reasoning import reason, chat as chat_reason
 from app.services.tts import generate_speech
 from app.services.delta import scene_changed
-from app.models.schemas import ContextPacket, SceneDescription, StreamAnalysisResponse
+from app.models.schemas import ContextPacket, SceneDescription, StreamAnalysisResponse, ChatResponse
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Depends, Form
 from fastapi.middleware.cors import CORSMiddleware
 from app.services.vision import extract_frames, scene_description
@@ -561,6 +561,45 @@ async def analyze_stream(
 
     except HTTPException:
         raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@server.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(
+    user_text: Annotated[str, Form()],
+    session_id: Annotated[str, Form()],
+    frames: list[UploadFile] = File(default=[]),
+):
+    """Conversational chat with optional visual context from glasses frames.
+
+    Sends user speech text + optional scene to the reasoning agent and returns
+    a text response with TTS audio.
+    """
+    try:
+        scene: SceneDescription | None = None
+
+        frame_bytes: list[bytes] = []
+        for f in frames:
+            data = await f.read()
+            if data and len(data) > 100:
+                frame_bytes.append(data)
+
+        if frame_bytes:
+            scene_dict = scene_description(frame_bytes)
+            scene = SceneDescription(**scene_dict)
+
+        response_text = chat_reason(user_text, scene)
+        audio_bytes = generate_speech(response_text)
+        audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+
+        return ChatResponse(
+            session_id=session_id,
+            response_text=response_text,
+            audio_base64=audio_b64,
+            timestamp=datetime.now().isoformat(),
+        )
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
