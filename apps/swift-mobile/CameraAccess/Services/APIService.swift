@@ -50,16 +50,19 @@ struct TextInSceneDTO: Codable {
 final class APIService {
     static let shared = APIService()
 
-    #if DEBUG
-    private var baseURL = "http://127.0.0.1:8000"
-    #else
-    private var baseURL = "http://127.0.0.1:8000"
-    #endif
+    private var baseURL: String
 
     private let session: URLSession
     private let jpegQuality: CGFloat = 0.7
 
     private init() {
+        if let plistURL = Bundle.main.object(forInfoDictionaryKey: "BACKEND_URL") as? String,
+           !plistURL.isEmpty {
+            baseURL = plistURL.hasSuffix("/") ? String(plistURL.dropLast()) : plistURL
+        } else {
+            baseURL = "http://127.0.0.1:8000"
+        }
+
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 60
         config.timeoutIntervalForResource = 120
@@ -88,7 +91,7 @@ final class APIService {
         appendFormField(to: &body, boundary: boundary, name: "session_id", value: sessionId)
 
         for (index, image) in frames.enumerated() {
-            guard let jpegData = image.jpegData(compressionQuality: jpegQuality) else { continue }
+            guard let jpegData = normalizedJPEGData(from: image) else { continue }
             appendFileField(
                 to: &body,
                 boundary: boundary,
@@ -124,6 +127,24 @@ final class APIService {
         } catch {
             return false
         }
+    }
+
+    // MARK: - Image normalization
+
+    /// Re-renders a UIImage into a standard sRGB bitmap so JPEG encoding
+    /// succeeds even for frames from non-standard pixel formats (e.g. Meta DAT SDK).
+    private func normalizedJPEGData(from image: UIImage) -> Data? {
+        if let direct = image.jpegData(compressionQuality: jpegQuality),
+           direct.count > 100 {
+            return direct
+        }
+
+        let size = image.size
+        UIGraphicsBeginImageContextWithOptions(size, true, 1.0)
+        defer { UIGraphicsEndImageContext() }
+        image.draw(in: CGRect(origin: .zero, size: size))
+        guard let redrawn = UIGraphicsGetImageFromCurrentImageContext() else { return nil }
+        return redrawn.jpegData(compressionQuality: jpegQuality)
     }
 
     // MARK: - Multipart helpers

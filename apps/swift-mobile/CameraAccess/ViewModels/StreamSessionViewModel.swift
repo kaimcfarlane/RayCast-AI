@@ -214,7 +214,7 @@ class StreamSessionViewModel: ObservableObject {
         audioPlayer.playBase64Audio(audioBase64)
       }
     } catch {
-      // Network errors during analysis are non-fatal — the next cycle will retry
+      print("[RayCastAI] Analysis cycle error: \(error.localizedDescription)")
     }
   }
 

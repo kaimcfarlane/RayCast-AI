@@ -49,7 +49,7 @@ final class AudioPlayerService: NSObject, ObservableObject {
     private func configureAudioSession() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.playback, mode: .spokenContent, options: [.duckOthers])
+            try audioSession.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
             try audioSession.setActive(true)
         } catch {
             // Audio session configuration failed — playback may not work as expected
