@@ -5,9 +5,9 @@ from openai import OpenAI
 load_dotenv()
 
 FFMPEG_PATH = os.getenv("FFMPEG_PATH", "ffmpeg")
+FIREBASE_BUCKET = os.getenv("FIREBASE_BUCKET")
 
 _client: OpenAI | None = None
-
 
 def get_openai_client() -> OpenAI:
     """
