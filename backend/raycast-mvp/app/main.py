@@ -74,12 +74,14 @@ def root():
         "health": "/health",
         "analyze_video": "POST /analyze-video",
         "analyze_stream": "POST /analyze-stream",
+        "analyze_stream_full": "POST /analyze-stream-full",
         "mock": "GET /mock",
         "endpoints": {
             "docs": "GET /docs",
             "health": "GET /health",
             "analyze_video": "POST /analyze-video",
-            "analyze_stream": "POST /analyze-stream",
+            "analyze_stream": "POST /analyze-stream (live frames, no auth)",
+            "analyze_stream_full": "POST /analyze-stream-full (full video, auth required)",
             "analyze_chunk": "POST /analyze-chunk",
             "session_start": "POST /session/start",
             "mock": "GET /mock"
@@ -177,8 +179,8 @@ async def analyze_video(
             os.remove(wav_path)
 
 
-@server.post("/analyze-stream", tags=["Video Analysis"])
-async def analyze_stream(
+@server.post("/analyze-stream-full", tags=["Video Analysis"])
+async def analyze_stream_full(
     file: UploadFile = File(...),
     chunk_duration: int = Query(default=5, ge=2, le=10, description="Duration of each chunk in seconds"),
     token: dict = Depends(verify_token)

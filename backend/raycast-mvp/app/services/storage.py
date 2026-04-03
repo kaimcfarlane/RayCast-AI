@@ -1,11 +1,47 @@
 import os
 import json
+from pathlib import Path
+
 import firebase_admin
 from firebase_admin import credentials, storage
+
 from app.services.config import FIREBASE_BUCKET
 
-# Initialize Firebase
-cred = credentials.Certificate("firebase-key.json")
+# Project root: backend/raycast-mvp (parent of app/)
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+
+
+def _firebase_credentials_path() -> Path | None:
+    """Resolve path to Firebase service account JSON (env or default filenames in project root)."""
+    for key in ("FIREBASE_CREDENTIALS_PATH", "GOOGLE_APPLICATION_CREDENTIALS"):
+        raw = os.getenv(key)
+        if raw:
+            p = Path(raw).expanduser()
+            if not p.is_absolute():
+                p = _PROJECT_ROOT / p
+            if p.is_file():
+                return p
+    for name in ("firebase-key.json",):
+        p = _PROJECT_ROOT / name
+        if p.is_file():
+            return p
+    matches = sorted(_PROJECT_ROOT.glob("*firebase-adminsdk*.json"))
+    if matches:
+        return matches[0]
+    return None
+
+
+_cred_path = _firebase_credentials_path()
+if _cred_path is None:
+    raise RuntimeError(
+        "Firebase credentials JSON not found. Add your service account file under "
+        "backend/raycast-mvp/ (e.g. rename/copy it to firebase-key.json) or set "
+        "FIREBASE_CREDENTIALS_PATH in .env to the file path."
+    )
+if not FIREBASE_BUCKET:
+    raise RuntimeError("FIREBASE_BUCKET is not set in .env")
+
+cred = credentials.Certificate(str(_cred_path))
 firebase_admin.initialize_app(cred, {"storageBucket": FIREBASE_BUCKET})
 
 bucket = storage.bucket()
