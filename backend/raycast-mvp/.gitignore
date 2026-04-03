@@ -1,5 +1,8 @@
 .env
+.venv/
+venv/
 firebase-key.json
 outputs/
 *.wav
 __pycache__/
+raycastai-bd5e7-firebase-adminsdk-fbsvc-f8a274d7b0.json

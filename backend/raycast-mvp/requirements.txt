@@ -1,0 +1,10 @@
+# RayCast AI backend — see readme.md for setup
+fastapi>=0.115.0,<1.0
+uvicorn[standard]>=0.32.0,<1.0
+python-multipart>=0.0.9
+pydantic>=2.0,<3
+openai>=1.50.0,<2.0
+python-dotenv>=1.0.0
+# Use opencv-python-headless on servers/CI (no GUI). For local dev, opencv-python is fine too.
+opencv-python-headless>=4.8.0,<5.0
+thefuzz>=0.22.0

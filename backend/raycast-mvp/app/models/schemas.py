@@ -30,6 +30,16 @@ class ContextPacket(BaseModel):
     timestamp: str
     scene: SceneDescription
     transcript: str
+
+
+class StreamAnalysisResponse(BaseModel):
+    session_id: str
+    changed: bool
+    scene: SceneDescription | None = None
+    analysis_text: str | None = None
+    audio_base64: str | None = None
+    task_mode: str
+    timestamp: str
     storage: Optional[StorageUrls] = None
 
 class ChunkPacket(BaseModel):
