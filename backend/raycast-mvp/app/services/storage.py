@@ -1,5 +1,6 @@
-import os
+import base64
 import json
+import os
 from pathlib import Path
 
 import firebase_admin
@@ -31,17 +32,48 @@ def _firebase_credentials_path() -> Path | None:
     return None
 
 
-_cred_path = _firebase_credentials_path()
-if _cred_path is None:
-    raise RuntimeError(
-        "Firebase credentials JSON not found. Add your service account file under "
-        "backend/raycast-mvp/ (e.g. rename/copy it to firebase-key.json) or set "
-        "FIREBASE_CREDENTIALS_PATH in .env to the file path."
-    )
-if not FIREBASE_BUCKET:
-    raise RuntimeError("FIREBASE_BUCKET is not set in .env")
+def _firebase_service_account_dict() -> dict | None:
+    """Load service account JSON from env (Render / CI) — avoids committing firebase-key.json."""
+    raw = os.getenv("FIREBASE_CREDENTIALS_JSON")
+    if raw and raw.strip():
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError as e:
+            raise RuntimeError(
+                "FIREBASE_CREDENTIALS_JSON is set but is not valid JSON."
+            ) from e
+    b64 = os.getenv("FIREBASE_CREDENTIALS_JSON_BASE64")
+    if b64 and b64.strip():
+        try:
+            decoded = base64.standard_b64decode(b64.strip())
+            return json.loads(decoded.decode("utf-8"))
+        except (ValueError, json.JSONDecodeError) as e:
+            raise RuntimeError(
+                "FIREBASE_CREDENTIALS_JSON_BASE64 is not valid base64-encoded JSON."
+            ) from e
+    return None
 
-cred = credentials.Certificate(str(_cred_path))
+
+def _build_firebase_certificate():
+    data = _firebase_service_account_dict()
+    if data is not None:
+        return credentials.Certificate(data)
+    path = _firebase_credentials_path()
+    if path is not None:
+        return credentials.Certificate(str(path))
+    raise RuntimeError(
+        "Firebase credentials not found. "
+        "Local: add firebase-key.json under backend/raycast-mvp/ or set "
+        "FIREBASE_CREDENTIALS_PATH / GOOGLE_APPLICATION_CREDENTIALS to a file path. "
+        "Hosted (e.g. Render): set FIREBASE_CREDENTIALS_JSON to the full service account JSON "
+        "string, or FIREBASE_CREDENTIALS_JSON_BASE64 (base64 of that JSON)."
+    )
+
+
+if not FIREBASE_BUCKET:
+    raise RuntimeError("FIREBASE_BUCKET is not set (use .env locally or Render environment variables).")
+
+cred = _build_firebase_certificate()
 firebase_admin.initialize_app(cred, {"storageBucket": FIREBASE_BUCKET})
 
 bucket = storage.bucket()
