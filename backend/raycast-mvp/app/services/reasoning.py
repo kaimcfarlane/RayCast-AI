@@ -1,5 +1,8 @@
+import json
+import base64
 from app.services.config import get_openai_client
 from app.models.schemas import SceneDescription
+from app.services.vision import strip_code_fences
 
 TASK_MODE_PROMPTS: dict[str, str] = {
     "chess": (
@@ -55,6 +58,74 @@ def reason(scene: SceneDescription, task_mode: str) -> str:
     if not text:
         return "I couldn't generate an analysis for this scene."
     return text
+
+
+UNIFIED_SYSTEM_PROMPT_TEMPLATE = """\
+You are a perception + reasoning agent for Meta smart glasses.
+
+Given camera frames, perform TWO tasks in a single pass:
+1. **Scene analysis**: structured JSON describing what you see.
+2. **Task guidance**: a short spoken response for the user ({task_description}).
+
+Return ONLY a JSON object with this exact structure (no markdown fences):
+{{
+  "scene": {{
+    "scene_summary": "1-2 sentences",
+    "objects": [{{"label": "string", "count": number}}],
+    "text_in_scene": [{{"text": "string", "confidence": number}}],
+    "key_details": ["short bullet strings"],
+    "uncertainties": ["short bullet strings"]
+  }},
+  "analysis_text": "Your 1-3 sentence spoken guidance for the user"
+}}
+
+Rules:
+- scene_summary is required
+- If you cannot read text, omit it from text_in_scene
+- analysis_text should be natural spoken language, concise and helpful
+- Respond ONLY with the JSON object, nothing else"""
+
+
+def perceive_and_reason(frames: list[bytes], task_mode: str) -> dict:
+    """Single-pass: frames → scene description + task-specific reasoning.
+
+    Collapses the old two-call pipeline (vision → reasoning) into one API
+    round-trip, cutting ~2-3 seconds of latency.
+
+    Returns dict with keys: "scene" (SceneDescription-compatible) and
+    "analysis_text" (str).
+    """
+    task_description = TASK_MODE_PROMPTS.get(task_mode, DEFAULT_PROMPT)
+    system_prompt = UNIFIED_SYSTEM_PROMPT_TEMPLATE.format(
+        task_description=task_description
+    )
+
+    content: list[dict] = [{"type": "input_text", "text": "Analyze these frames:"}]
+    for frame_bytes in frames:
+        b64 = base64.b64encode(frame_bytes).decode("utf-8").replace("\n", "").replace("\r", "")
+        content.append({
+            "type": "input_image",
+            "image_url": f"data:image/jpeg;base64,{b64}",
+        })
+
+    client = get_openai_client()
+    response = client.responses.create(
+        model="gpt-4o-mini",
+        instructions=system_prompt,
+        input=[{"role": "user", "content": content}],
+        text={"format": {"type": "json_object"}},
+    )
+
+    raw = strip_code_fences(response.output_text)
+    if not raw:
+        raise ValueError("Model returned no output")
+
+    result = json.loads(raw)
+
+    if "scene" not in result or "analysis_text" not in result:
+        raise ValueError(f"Unexpected response structure: {list(result.keys())}")
+
+    return result
 
 
 CHAT_SYSTEM_PROMPT = (
