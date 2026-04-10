@@ -11,10 +11,15 @@ struct RootTabView: View {
     @Binding var selectedTab: AppTab
     var onNavigateToConnect: () -> Void
     @State private var selectedTask: TaskMode? = nil
+    @State private var searchQuery: String = ""
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            DashboardView(wearablesVM: wearablesVM, selectedTask: $selectedTask) {
+            DashboardView(
+                wearablesVM: wearablesVM,
+                selectedTask: $selectedTask,
+                searchQuery: $searchQuery
+            ) {
                 selectedTab = .live
             }
             .tabItem {
@@ -26,6 +31,7 @@ struct RootTabView: View {
                 wearables: wearables,
                 wearablesVM: wearablesVM,
                 taskMode: selectedTask,
+                searchQuery: searchQuery,
                 onBackToHome: { selectedTab = .home }
             )
             .tabItem {

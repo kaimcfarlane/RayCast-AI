@@ -74,8 +74,11 @@ def client():
         mock_tts_response.content = FAKE_MP3
         mock_tts_client.return_value.audio.speech.create.return_value = mock_tts_response
 
-        from app.services.delta import _sessions
-        _sessions.clear()
+        from app.services.delta import _sessions as delta_sessions
+        delta_sessions.clear()
+
+        from app.services.memory import _sessions as memory_sessions
+        memory_sessions.clear()
 
         from app.main import server
         yield TestClient(server)
@@ -121,7 +124,7 @@ class TestAnalyzeStream:
         assert resp.status_code == 422
 
     def test_delta_skips_unchanged_scene(self, client):
-        """Second request with same scene → changed=False, no audio."""
+        """Second request with same scene -> changed=False, no audio."""
         frame = _make_test_frame()
         files = [("frames", ("frame.jpg", frame, "image/jpeg"))]
 
@@ -140,7 +143,7 @@ class TestAnalyzeStream:
         assert body["audio_base64"] is None
 
     def test_frame_diff_skips_identical_frames(self, client):
-        """Identical frames on consecutive calls → fast skip via frame-diff."""
+        """Identical frames on consecutive calls -> fast skip via frame-diff."""
         frame = _make_test_frame()
         files = [("frames", ("frame.jpg", frame, "image/jpeg"))]
 
@@ -160,7 +163,7 @@ class TestAnalyzeStream:
         assert elapsed < 0.5, f"Frame-diff skip should be fast, took {elapsed:.2f}s"
 
     def test_changed_scene_triggers_new_analysis(self, client):
-        """Different mock scene on second call → changed=True again."""
+        """Different mock scene on second call -> changed=True again."""
         frame1 = _make_test_frame("scene1")
         frame2 = _make_different_frame()
 
@@ -200,6 +203,94 @@ class TestAnalyzeStream:
                 files=[("frames", ("f.jpg", frame, "image/jpeg"))],
             )
             assert resp.status_code == 200, f"mode {mode} failed: {resp.text}"
+
+    def test_search_query_accepted(self, client):
+        """findObject mode with a search_query param should work."""
+        frame = _make_test_frame()
+        resp = client.post(
+            "/analyze-stream",
+            data={
+                "task_mode": "findObject",
+                "session_id": "s-search",
+                "search_query": "red backpack",
+            },
+            files=[("frames", ("f.jpg", frame, "image/jpeg"))],
+        )
+        assert resp.status_code == 200
+        assert resp.json()["changed"] is True
+
+    def test_search_query_optional(self, client):
+        """analyze-stream works without search_query (backward compat)."""
+        frame = _make_test_frame()
+        resp = client.post(
+            "/analyze-stream",
+            data={"task_mode": "findObject", "session_id": "s-no-search"},
+            files=[("frames", ("f.jpg", frame, "image/jpeg"))],
+        )
+        assert resp.status_code == 200
+
+
+class TestMemory:
+    def test_memory_stores_turns(self, client):
+        """After an analyze-stream call, memory should have a turn stored."""
+        from app.services.memory import get_history
+
+        frame = _make_test_frame()
+        client.post(
+            "/analyze-stream",
+            data={"task_mode": "describe", "session_id": "s-mem"},
+            files=[("frames", ("f.jpg", frame, "image/jpeg"))],
+        )
+
+        history = get_history("s-mem")
+        assert len(history) == 1
+        assert history[0].scene_summary == MOCK_SCENE["scene"]["scene_summary"]
+        assert history[0].analysis_text == MOCK_SCENE["analysis_text"]
+
+    def test_memory_accumulates_across_calls(self, client):
+        """Multiple calls to the same session accumulate history."""
+        from app.services.memory import get_history
+
+        frame = _make_test_frame("mem1")
+        frame2 = _make_different_frame()
+
+        client.post(
+            "/analyze-stream",
+            data={"task_mode": "general", "session_id": "s-mem2"},
+            files=[("frames", ("f.jpg", frame, "image/jpeg"))],
+        )
+
+        from app.services.reasoning import get_openai_client
+        mock_resp2 = MagicMock()
+        mock_resp2.output_text = json.dumps(MOCK_SCENE_CHANGED)
+        get_openai_client.return_value.responses.create.return_value = mock_resp2
+
+        client.post(
+            "/analyze-stream",
+            data={"task_mode": "general", "session_id": "s-mem2"},
+            files=[("frames", ("f.jpg", frame2, "image/jpeg"))],
+        )
+
+        history = get_history("s-mem2")
+        assert len(history) == 2
+
+    def test_chat_stores_memory(self, client):
+        """Chat endpoint should also store turns in memory."""
+        from app.services.memory import get_history
+
+        with patch("app.services.reasoning.get_openai_client") as mock_chat:
+            mock_resp = MagicMock()
+            mock_resp.output_text = "I can see a laptop on the desk."
+            mock_chat.return_value.responses.create.return_value = mock_resp
+
+            client.post(
+                "/chat",
+                data={"user_text": "what do you see?", "session_id": "s-chat-mem"},
+            )
+
+        history = get_history("s-chat-mem")
+        assert len(history) == 1
+        assert "laptop" in history[0].analysis_text.lower()
 
 
 class TestChat:

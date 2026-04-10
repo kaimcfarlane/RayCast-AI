@@ -524,6 +524,7 @@ async def analyze_stream(
     task_mode: Annotated[str, Form()],
     session_id: Annotated[str, Form()],
     frames: list[UploadFile] = File(...),
+    search_query: Annotated[str | None, Form()] = None,
 ):
     """Optimized live-stream analysis pipeline.
 
@@ -570,7 +571,10 @@ async def analyze_stream(
 
         t_diff = time.perf_counter()
 
-        result = await asyncio.to_thread(perceive_and_reason, frame_bytes, task_mode)
+        result = await asyncio.to_thread(
+            perceive_and_reason, frame_bytes, task_mode,
+            session_id=session_id, search_query=search_query,
+        )
         scene = SceneDescription(**result["scene"])
         analysis_text: str = result["analysis_text"]
 
@@ -649,7 +653,9 @@ async def chat_endpoint(
             scene_dict = await asyncio.to_thread(scene_description, frame_bytes)
             scene = SceneDescription(**scene_dict)
 
-        response_text = await asyncio.to_thread(chat_reason, user_text, scene)
+        response_text = await asyncio.to_thread(
+            chat_reason, user_text, scene, session_id=session_id,
+        )
         audio_bytes = await asyncio.to_thread(generate_speech, response_text)
         audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
 

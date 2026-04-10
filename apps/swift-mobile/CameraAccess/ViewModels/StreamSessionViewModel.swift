@@ -49,6 +49,7 @@ class StreamSessionViewModel: ObservableObject {
   @Published var analysisMessages: [AnalysisMessage] = []
   @Published var isAnalyzing: Bool = false
   @Published var taskMode: TaskMode?
+  @Published var searchQuery: String = ""
   @Published var streamError: String?
 
   // Talk mode state
@@ -210,7 +211,8 @@ class StreamSessionViewModel: ObservableObject {
       let response = try await APIService.shared.analyzeStream(
         frames: frames,
         taskMode: mode.rawValue,
-        sessionId: sessionId
+        sessionId: sessionId,
+        searchQuery: mode == .findObject ? searchQuery : nil
       )
 
       guard response.changed else { return }

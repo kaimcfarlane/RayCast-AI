@@ -90,7 +90,8 @@ final class APIService {
     func analyzeStream(
         frames: [UIImage],
         taskMode: String,
-        sessionId: String
+        sessionId: String,
+        searchQuery: String? = nil
     ) async throws -> StreamAnalysisResponse {
         let url = URL(string: "\(baseURL)/analyze-stream")!
         var request = URLRequest(url: url)
@@ -103,6 +104,10 @@ final class APIService {
 
         appendFormField(to: &body, boundary: boundary, name: "task_mode", value: taskMode)
         appendFormField(to: &body, boundary: boundary, name: "session_id", value: sessionId)
+
+        if let query = searchQuery, !query.isEmpty {
+            appendFormField(to: &body, boundary: boundary, name: "search_query", value: query)
+        }
 
         for (index, image) in frames.enumerated() {
             guard let jpegData = normalizedJPEGData(from: image) else { continue }
