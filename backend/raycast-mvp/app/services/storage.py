@@ -31,20 +31,29 @@ def _firebase_credentials_path() -> Path | None:
     return None
 
 
-_cred_path = _firebase_credentials_path()
-if _cred_path is None:
-    raise RuntimeError(
-        "Firebase credentials JSON not found. Add your service account file under "
-        "backend/raycast-mvp/ (e.g. rename/copy it to firebase-key.json) or set "
-        "FIREBASE_CREDENTIALS_PATH in .env to the file path."
-    )
-if not FIREBASE_BUCKET:
-    raise RuntimeError("FIREBASE_BUCKET is not set in .env")
+_bucket = None
 
-cred = credentials.Certificate(str(_cred_path))
-firebase_admin.initialize_app(cred, {"storageBucket": FIREBASE_BUCKET})
 
-bucket = storage.bucket()
+def _get_bucket():
+    """Lazily initialize Firebase so endpoints that don't need storage can still work."""
+    global _bucket
+    if _bucket is not None:
+        return _bucket
+
+    _cred_path = _firebase_credentials_path()
+    if _cred_path is None:
+        raise RuntimeError(
+            "Firebase credentials JSON not found. Add your service account file under "
+            "backend/raycast-mvp/ (e.g. rename/copy it to firebase-key.json) or set "
+            "FIREBASE_CREDENTIALS_PATH in .env to the file path."
+        )
+    if not FIREBASE_BUCKET:
+        raise RuntimeError("FIREBASE_BUCKET is not set in .env")
+
+    cred = credentials.Certificate(str(_cred_path))
+    firebase_admin.initialize_app(cred, {"storageBucket": FIREBASE_BUCKET})
+    _bucket = storage.bucket()
+    return _bucket
 
 # ── Storage Limits ──
 MAX_VIDEO_SIZE_MB = 50
@@ -58,7 +67,7 @@ def upload_file(local_path: str, remote_path: str) -> str:
     if size_mb > MAX_VIDEO_SIZE_MB:
         raise ValueError(f"File too large ({size_mb:.1f}MB). Max is {MAX_VIDEO_SIZE_MB}MB.")
 
-    blob = bucket.blob(remote_path)
+    blob = _get_bucket().blob(remote_path)
     blob.upload_from_filename(local_path)
     blob.make_public()
     return blob.public_url
@@ -66,7 +75,7 @@ def upload_file(local_path: str, remote_path: str) -> str:
 
 def upload_json(data: dict, remote_path: str) -> str:
     """Upload a JSON dict directly to Firebase Storage."""
-    blob = bucket.blob(remote_path)
+    blob = _get_bucket().blob(remote_path)
     blob.upload_from_string(json.dumps(data, indent=2), content_type="application/json")
     blob.make_public()
     return blob.public_url
@@ -74,7 +83,7 @@ def upload_json(data: dict, remote_path: str) -> str:
 
 def upload_frame(frame_bytes: bytes, remote_path: str) -> str:
     """Upload a JPEG frame buffer to Firebase Storage."""
-    blob = bucket.blob(remote_path)
+    blob = _get_bucket().blob(remote_path)
     blob.upload_from_string(frame_bytes, content_type="image/jpeg")
     blob.make_public()
     return blob.public_url
@@ -82,7 +91,7 @@ def upload_frame(frame_bytes: bytes, remote_path: str) -> str:
 
 def delete_session_files(session_id: str) -> int:
     """Delete all files in Firebase for a given session. Returns count of files deleted."""
-    blobs = list(bucket.list_blobs(prefix=f"{session_id}/"))
+    blobs = list(_get_bucket().list_blobs(prefix=f"{session_id}/"))
     count = 0
     for blob in blobs:
         blob.delete()
@@ -92,14 +101,14 @@ def delete_session_files(session_id: str) -> int:
 
 def get_session_storage_size(session_id: str) -> float:
     """Get total storage used by a session in MB."""
-    blobs = list(bucket.list_blobs(prefix=f"{session_id}/"))
+    blobs = list(_get_bucket().list_blobs(prefix=f"{session_id}/"))
     total_bytes = sum(blob.size or 0 for blob in blobs)
     return total_bytes / (1024 * 1024)
 
 
 def list_session_files(session_id: str) -> list[dict]:
     """List all files stored for a session."""
-    blobs = list(bucket.list_blobs(prefix=f"{session_id}/"))
+    blobs = list(_get_bucket().list_blobs(prefix=f"{session_id}/"))
     return [
         {
             "name": blob.name,
