@@ -420,6 +420,7 @@
 		0B0B0B0B0B0B0B0B0B0B0B0B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BACKEND_URL = "https://bess-noninterdependent-tanner.ngrok-free.dev";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -449,6 +450,7 @@
 		0C0C0C0C0C0C0C0C0C0C0C0C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BACKEND_URL = "https://raycastai-testserver.onrender.com";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

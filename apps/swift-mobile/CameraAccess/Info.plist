@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>BACKEND_URL</key>
-	<string>https://bess-noninterdependent-tanner.ngrok-free.dev</string>
+	<string>$(BACKEND_URL)</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
