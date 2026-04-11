@@ -1,6 +1,11 @@
 import json
 import base64
-from app.services.config import get_openai_client
+from app.services.config import (
+    get_openai_client,
+    OPENAI_STREAM_MODEL,
+    OPENAI_REASON_MODEL,
+    OPENAI_CHAT_MODEL,
+)
 from app.models.schemas import SceneDescription
 from app.services.vision import strip_code_fences
 from app.services.memory import format_history_for_prompt, store_turn
@@ -81,7 +86,7 @@ def reason(scene: SceneDescription, task_mode: str) -> str:
 
     client = get_openai_client()
     response = client.responses.create(
-        model="gpt-4o-mini",
+        model=OPENAI_REASON_MODEL,
         instructions=system_prompt,
         input=[{"role": "user", "content": user_message}],
     )
@@ -153,7 +158,10 @@ def perceive_and_reason(
         history_block=history_block,
     )
 
-    content: list[dict] = [{"type": "input_text", "text": "Analyze these frames:"}]
+    content: list[dict] = [{
+        "type": "input_text",
+        "text": "Analyze these frames and respond with JSON exactly as specified in the instructions.",
+    }]
     for frame_bytes in frames:
         b64 = base64.b64encode(frame_bytes).decode("utf-8").replace("\n", "").replace("\r", "")
         content.append({
@@ -163,7 +171,7 @@ def perceive_and_reason(
 
     client = get_openai_client()
     response = client.responses.create(
-        model="gpt-4o-mini",
+        model=OPENAI_STREAM_MODEL,
         instructions=system_prompt,
         input=[{"role": "user", "content": content}],
         text={"format": {"type": "json_object"}},
@@ -223,7 +231,7 @@ def chat(
 
     client = get_openai_client()
     response = client.responses.create(
-        model="gpt-4o-mini",
+        model=OPENAI_CHAT_MODEL,
         instructions=system_prompt,
         input=[{"role": "user", "content": "\n\n".join(context_parts)}],
     )

@@ -8,7 +8,7 @@ Takes video input → extracts frames + audio → sends frames to a vision model
 
 ```
 Video Input
-  ├── Frames (OpenCV) ──→ Vision Model (GPT-4o-mini) ──→ Scene Description JSON
+  ├── Frames (OpenCV) ──→ Vision / reasoning (gpt-5.4-mini stream; gpt-5.4 batch scene) ──→ Scene Description JSON
   └── Audio  (FFmpeg)  ──→ STT (gpt-4o-mini-transcribe) ──→ Transcript
                                                                  ↓
                                                           Context Packet
@@ -284,8 +284,13 @@ session-20260328150000/
 | Component | Technology |
 |-----------|-----------|
 | API Framework | FastAPI |
-| Vision Model | GPT-4o-mini (OpenAI Responses API) |
-| Speech-to-Text | gpt-4o-mini-transcribe (OpenAI) |
+| Live stream (`perceive_and_reason`) | `gpt-5.4-mini` (`OPENAI_STREAM_MODEL`) |
+| Standalone scene JSON (`scene_description`) | `gpt-5.4` (`OPENAI_SCENE_MODEL`) |
+| Reason on scene text (`reason`) | `gpt-5.4-mini` (`OPENAI_REASON_MODEL`) |
+| Chat | `gpt-5.4-mini` (`OPENAI_CHAT_MODEL`) |
+| All of the above at once | Set `OPENAI_MODEL` (overrides the four if per-key unset) |
+| Speech-to-Text | `gpt-4o-mini-transcribe` (`OPENAI_TRANSCRIBE_MODEL`) |
+| Text-to-Speech | `gpt-4o-mini-tts` (`OPENAI_TTS_MODEL`) |
 | Frame Extraction | OpenCV |
 | Audio/Video Processing | FFmpeg |
 | Cloud Storage | Firebase Storage |
