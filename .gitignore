@@ -21,3 +21,7 @@ node_modules/
 *.swp
 *.swo
 *~
+
+# Xcode — user-specific (window state, schemes); should not be committed
+**/xcuserdata/
+*.xcuserstate
