@@ -70,11 +70,35 @@ final class APIService {
     private let jpegQuality: CGFloat = 0.7
 
     private init() {
-        if let plistURL = Bundle.main.object(forInfoDictionaryKey: "BACKEND_URL") as? String,
-           !plistURL.isEmpty {
-            baseURL = plistURL.hasSuffix("/") ? String(plistURL.dropLast()) : plistURL
+        // Physical devices cannot reach your Mac via http://127.0.0.1 — that is the phone itself.
+        // Set BACKEND_URL in Info.plist, or RAYCAST_BACKEND_URL in the Run scheme, to your
+        // ngrok https URL (from `ngrok http 8000`) or http://<Mac-LAN-IP>:8000.
+        let fromEnv = ProcessInfo.processInfo.environment["RAYCAST_BACKEND_URL"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let fromPlist = Bundle.main.object(forInfoDictionaryKey: "BACKEND_URL") as? String
+
+        let resolved: String?
+        if let fromEnv, !fromEnv.isEmpty {
+            resolved = fromEnv
+        } else if let fromPlist, !fromPlist.isEmpty {
+            resolved = fromPlist
         } else {
+            resolved = nil
+        }
+
+        if let r = resolved {
+            baseURL = r.hasSuffix("/") ? String(r.dropLast()) : r
+        } else {
+            #if targetEnvironment(simulator)
             baseURL = "http://127.0.0.1:8000"
+            #else
+            print(
+                "[APIService] No BACKEND_URL or RAYCAST_BACKEND_URL — using http://127.0.0.1:8000. " +
+                    "On a real device that address is the phone, not your Mac. " +
+                    "Set BACKEND_URL in Info.plist to your ngrok https URL or your Mac's LAN IP."
+            )
+            baseURL = "http://127.0.0.1:8000"
+            #endif
         }
 
         let config = URLSessionConfiguration.default
@@ -90,11 +114,13 @@ final class APIService {
     func analyzeStream(
         frames: [UIImage],
         taskMode: String,
-        sessionId: String
+        sessionId: String,
+        searchQuery: String? = nil
     ) async throws -> StreamAnalysisResponse {
         let url = URL(string: "\(baseURL)/analyze-stream")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        applyBackendHeaders(to: &request)
 
         let boundary = "Boundary-\(UUID().uuidString)"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
@@ -103,6 +129,10 @@ final class APIService {
 
         appendFormField(to: &body, boundary: boundary, name: "task_mode", value: taskMode)
         appendFormField(to: &body, boundary: boundary, name: "session_id", value: sessionId)
+
+        if let query = searchQuery, !query.isEmpty {
+            appendFormField(to: &body, boundary: boundary, name: "search_query", value: query)
+        }
 
         for (index, image) in frames.enumerated() {
             guard let jpegData = normalizedJPEGData(from: image) else { continue }
@@ -136,7 +166,9 @@ final class APIService {
     func healthCheck() async -> Bool {
         guard let url = URL(string: "\(baseURL)/health") else { return false }
         do {
-            let (_, response) = try await session.data(from: url)
+            var request = URLRequest(url: url)
+            applyBackendHeaders(to: &request)
+            let (_, response) = try await session.data(for: request)
             return (response as? HTTPURLResponse)?.statusCode == 200
         } catch {
             return false
@@ -151,6 +183,7 @@ final class APIService {
         let url = URL(string: "\(baseURL)/chat")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        applyBackendHeaders(to: &request)
 
         let boundary = "Boundary-\(UUID().uuidString)"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
@@ -186,6 +219,12 @@ final class APIService {
         }
 
         return try JSONDecoder().decode(ChatResponseDTO.self, from: data)
+    }
+
+    /// ngrok-free interstitials can break API clients unless this header is set.
+    private func applyBackendHeaders(to request: inout URLRequest) {
+        guard let host = request.url?.host?.lowercased(), host.contains("ngrok") else { return }
+        request.setValue("true", forHTTPHeaderField: "ngrok-skip-browser-warning")
     }
 
     // MARK: - Image normalization

@@ -32,6 +32,7 @@ enum TaskMode: String, CaseIterable, Identifiable {
 struct DashboardView: View {
     @ObservedObject var wearablesVM: WearablesViewModel
     @Binding var selectedTask: TaskMode?
+    @Binding var searchQuery: String
     var onStartSession: () -> Void
     @State private var menuVisible = false
 
@@ -59,7 +60,13 @@ struct DashboardView: View {
                             .padding(.bottom, 16)
 
                         taskGrid
-                            .padding(.bottom, 24)
+                            .padding(.bottom, 16)
+
+                        if selectedTask == .findObject {
+                            searchInputField
+                                .padding(.bottom, 16)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                        }
 
                         GradientButton(title: "Start Session", variant: .primary) {
                             let generator = UIImpactFeedbackGenerator(style: .medium)
@@ -129,6 +136,26 @@ struct DashboardView: View {
         .padding(16)
         .background(AppTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var searchInputField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("What are you looking for?")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(AppTheme.textSecondary)
+
+            TextField("e.g. my keys, a red bag, the exit sign...", text: $searchQuery)
+                .font(.system(size: 16))
+                .foregroundColor(AppTheme.text)
+                .padding(14)
+                .background(AppTheme.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(AppTheme.border, lineWidth: 1)
+                )
+        }
+        .animation(.easeInOut(duration: 0.2), value: selectedTask)
     }
 
     private var taskGrid: some View {

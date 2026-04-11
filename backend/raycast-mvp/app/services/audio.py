@@ -1,5 +1,5 @@
 import subprocess
-from app.services.config import get_openai_client, FFMPEG_PATH
+from app.services.config import get_openai_client, FFMPEG_PATH, OPENAI_TRANSCRIBE_MODEL
 
 def extract_audio(video_path: str, wav_path: str = "outputs/test.wav") -> str:
     """Extract audio track from video as 16kHz mono WAV."""
@@ -18,7 +18,7 @@ def transcribe_audio(wav_path: str) -> str:
     with open(wav_path, "rb") as f:
         client = get_openai_client()
         transcript = client.audio.transcriptions.create(
-            model="gpt-4o-mini-transcribe",
+            model=OPENAI_TRANSCRIBE_MODEL,
             file=f,
         )
     return transcript.text
