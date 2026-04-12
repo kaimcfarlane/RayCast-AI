@@ -42,6 +42,13 @@ class StreamAnalysisResponse(BaseModel):
     timestamp: str
     storage: Optional[StorageUrls] = None
 
+class ChatResponse(BaseModel):
+    session_id: str
+    response_text: str
+    audio_base64: str | None = None
+    timestamp: str
+
+
 class ChunkPacket(BaseModel):
     session_id: str
     chunk_index: int

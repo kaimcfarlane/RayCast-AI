@@ -1,9 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenLayout } from '@/components/screen-layout';
 import { GradientColors, DarkTheme } from '@/constants/theme';
+import { useAuth } from '@/lib/auth-context';
 
 function SettingsIcon({ name }: { name: keyof typeof Ionicons.glyphMap }) {
   return (
@@ -20,9 +21,36 @@ function SettingsIcon({ name }: { name: keyof typeof Ionicons.glyphMap }) {
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { user, signOut } = useAuth();
+
+  function handleSignOut() {
+    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign out',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          router.replace('/login');
+        },
+      },
+    ]);
+  }
 
   return (
     <ScreenLayout title="Settings" subtitle="Preferences & account">
+      {user && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.row}>
+            <SettingsIcon name="person-outline" />
+            <View style={styles.accountInfo}>
+              <Text style={styles.accountName}>{user.displayName ?? 'User'}</Text>
+              <Text style={styles.rowSublabel}>{user.email}</Text>
+            </View>
+          </View>
+        </View>
+      )}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Device</Text>
         <TouchableOpacity style={styles.row} onPress={() => router.push('/connect')} activeOpacity={0.7}>
@@ -50,6 +78,12 @@ export default function SettingsScreen() {
           <SettingsIcon name="information-circle-outline" />
           <Text style={styles.rowLabel}>RayCast AI v1.0.0</Text>
         </View>
+      </View>
+      <View style={styles.section}>
+        <TouchableOpacity style={styles.signOutRow} onPress={handleSignOut} activeOpacity={0.7}>
+          <Ionicons name="log-out-outline" size={22} color="#FF6B6B" />
+          <Text style={styles.signOutText}>Sign out</Text>
+        </TouchableOpacity>
       </View>
     </ScreenLayout>
   );
@@ -89,5 +123,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: DarkTheme.text,
     marginLeft: 12,
+  },
+  accountInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  accountName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: DarkTheme.text,
+  },
+  rowSublabel: {
+    fontSize: 13,
+    color: DarkTheme.textMuted,
+    marginTop: 2,
+  },
+  signOutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 107, 107, 0.08)',
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+  },
+  signOutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF6B6B',
   },
 });
