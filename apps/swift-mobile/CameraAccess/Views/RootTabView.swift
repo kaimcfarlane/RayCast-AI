@@ -45,7 +45,7 @@ struct RootTabView: View {
                 }
                 .tag(AppTab.history)
 
-            SettingsView(onConnectGlasses: onNavigateToConnect)
+            SettingsView(wearablesVM: wearablesVM, onConnectGlasses: onNavigateToConnect)
                 .tabItem {
                     Label("Settings", systemImage: selectedTab == .settings ? "gearshape.fill" : "gearshape")
                 }

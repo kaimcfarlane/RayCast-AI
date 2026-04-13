@@ -35,6 +35,7 @@ struct DashboardView: View {
     @Binding var searchQuery: String
     var onStartSession: () -> Void
     @State private var menuVisible = false
+    @ObservedObject private var historyStore = SessionHistoryStore.shared
 
     private var isConnected: Bool {
         wearablesVM.registrationState == .registered || wearablesVM.hasMockDevice
@@ -83,7 +84,8 @@ struct DashboardView: View {
 
             MenuOverlayView(
                 isVisible: $menuVisible,
-                onStartLiveSession: onStartSession
+                onStartLiveSession: onStartSession,
+                sessionHistory: historyStore.sessions
             )
         }
     }

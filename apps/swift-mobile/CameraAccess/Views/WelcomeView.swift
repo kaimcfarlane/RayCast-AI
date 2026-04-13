@@ -56,7 +56,6 @@ struct WelcomeView: View {
 
                     VStack(spacing: 14) {
                         GradientButton(title: "Get Started", variant: .primary, action: onGetStarted)
-                        GradientButton(title: "Learn More", variant: .secondary, action: {})
                     }
                     .padding(.bottom, 24)
                 }

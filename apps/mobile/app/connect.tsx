@@ -56,7 +56,7 @@ export default function ConnectScreen() {
     <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
       <MenuOverlay visible={menuVisible} onClose={() => setMenuVisible(false)} />
 
-      {/* Hamburger menu */}
+      {/* Hamburger menu still don't know if I like the circular button */} 
       <AnimatedIconButton style={styles.menuButton} onPress={() => setMenuVisible(true)}>
         <Ionicons name="menu" size={22} color="#FFF" />
       </AnimatedIconButton>

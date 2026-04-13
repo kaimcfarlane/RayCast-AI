@@ -1,8 +1,15 @@
+import MWDATCore
 import SwiftUI
 
 struct SettingsView: View {
+    @ObservedObject var wearablesVM: WearablesViewModel
     var onConnectGlasses: () -> Void
     @State private var menuVisible = false
+    @ObservedObject private var historyStore = SessionHistoryStore.shared
+
+    private var isConnected: Bool {
+        wearablesVM.registrationState == .registered || wearablesVM.hasMockDevice
+    }
 
     var body: some View {
         ZStack {
@@ -26,7 +33,7 @@ struct SettingsView: View {
                     Text("Settings")
                         .font(.system(size: 32, weight: .bold))
                         .foregroundColor(AppTheme.text)
-                    Text("Preferences & account")
+                    Text("Preferences & device")
                         .font(.system(size: 16))
                         .foregroundColor(AppTheme.textSecondary)
                 }
@@ -36,15 +43,29 @@ struct SettingsView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 24) {
                         settingsSection(title: "DEVICE") {
-                            settingsRow(icon: "eyeglasses", label: "Connect glasses", showChevron: true) {
-                                onConnectGlasses()
+                            if isConnected {
+                                deviceSummaryCard
+                            } else {
+                                settingsRow(icon: "eyeglasses", label: "Connect glasses", showChevron: true) {
+                                    onConnectGlasses()
+                                }
                             }
                         }
 
                         settingsSection(title: "APP") {
                             VStack(spacing: 8) {
-                                settingsRow(icon: "bell", label: "Notifications", showChevron: true) {}
-                                settingsRow(icon: "lock.fill", label: "Privacy", showChevron: true) {}
+                                settingsRow(
+                                    icon: "bell",
+                                    label: "Notifications",
+                                    showChevron: false,
+                                    isDisabled: true
+                                ) {}
+                                settingsRow(
+                                    icon: "lock.fill",
+                                    label: "Privacy",
+                                    showChevron: false,
+                                    isDisabled: true
+                                ) {}
                             }
                         }
 
@@ -59,8 +80,62 @@ struct SettingsView: View {
             .padding(.horizontal, 24)
             .padding(.top, 16)
 
-            MenuOverlayView(isVisible: $menuVisible, onPairGlasses: onConnectGlasses)
+            MenuOverlayView(
+                isVisible: $menuVisible,
+                onPairGlasses: onConnectGlasses,
+                sessionHistory: historyStore.sessions
+            )
         }
+    }
+
+    private var deviceSummaryCard: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "eyeglasses")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
+                    .frame(width: 40, height: 40)
+                    .background(AppTheme.gradient)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Meta Ray-Ban Gen 2")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(AppTheme.text)
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(.green)
+                            .frame(width: 8, height: 8)
+                        Text("Connected")
+                            .font(.system(size: 14))
+                            .foregroundColor(.green)
+                    }
+                }
+
+                Spacer()
+            }
+
+            Divider()
+                .background(AppTheme.border)
+
+            Button(role: .destructive) {
+                wearablesVM.disconnectGlasses()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "wifi.slash")
+                        .font(.system(size: 14))
+                    Text("Disconnect")
+                        .font(.system(size: 15, weight: .medium))
+                }
+                .foregroundColor(.red.opacity(0.85))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(16)
+        .background(AppTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     private func settingsSection(title: String, @ViewBuilder content: () -> some View) -> some View {
@@ -74,23 +149,38 @@ struct SettingsView: View {
         }
     }
 
-    private func settingsRow(icon: String, label: String, showChevron: Bool, action: @escaping () -> Void) -> some View {
+    private func settingsRow(
+        icon: String,
+        label: String,
+        showChevron: Bool,
+        isDisabled: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.system(size: 18))
-                    .foregroundColor(.white)
+                    .foregroundColor(.white.opacity(isDisabled ? 0.4 : 1))
                     .frame(width: 40, height: 40)
-                    .background(AppTheme.gradient)
+                    .background(isDisabled ? AppTheme.surfaceElevated : nil)
+                    .background(isDisabled ? nil : AppTheme.gradient)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
 
                 Text(label)
                     .font(.system(size: 16))
-                    .foregroundColor(AppTheme.text)
+                    .foregroundColor(isDisabled ? AppTheme.textMuted : AppTheme.text)
 
                 Spacer()
 
-                if showChevron {
+                if isDisabled {
+                    Text("Coming Soon")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(AppTheme.textMuted)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(AppTheme.surfaceElevated)
+                        .clipShape(Capsule())
+                } else if showChevron {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(AppTheme.textMuted)
@@ -101,5 +191,6 @@ struct SettingsView: View {
             .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
+        .disabled(isDisabled)
     }
 }

@@ -68,6 +68,8 @@ class StreamSessionViewModel: ObservableObject {
   @Published var showPhotoPreview: Bool = false
 
   let audioPlayer = AudioPlayerService()
+  private let historyStore = SessionHistoryStore.shared
+  private var hasStartedHistorySession = false
 
   private var streamSession: StreamSession
   private var stateListenerToken: AnyListenerToken?
@@ -321,12 +323,22 @@ class StreamSessionViewModel: ObservableObject {
 
   // MARK: - Helpers
 
+  private func ensureHistorySession() {
+    guard !hasStartedHistorySession else { return }
+    hasStartedHistorySession = true
+    let mode = taskMode ?? .general
+    historyStore.startSession(id: sessionId, taskMode: mode)
+  }
+
   private func appendMessage(_ text: String, sender: MessageSender) {
     let message = AnalysisMessage(text: text, timestamp: Date(), sender: sender)
     analysisMessages.append(message)
     if analysisMessages.count > 10 {
       analysisMessages.removeFirst(analysisMessages.count - 10)
     }
+
+    ensureHistorySession()
+    historyStore.addMessage(sessionId: sessionId, text: text, isUser: sender == .user)
   }
 
   private func showStreamError(_ message: String) {

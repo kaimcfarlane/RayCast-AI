@@ -4,6 +4,7 @@ import SwiftUI
 struct ConnectView: View {
     @ObservedObject var viewModel: WearablesViewModel
     var onSkip: () -> Void
+    var onBack: (() -> Void)?
     @State private var menuVisible = false
 
     private var isPairing: Bool {
@@ -16,13 +17,24 @@ struct ConnectView: View {
 
             VStack(spacing: 0) {
                 HStack {
-                    Button(action: { withAnimation { menuVisible = true } }) {
-                        Image(systemName: "line.3.horizontal")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(width: 38, height: 38)
-                            .background(AppTheme.menuIconBg)
-                            .clipShape(Circle())
+                    if let onBack {
+                        Button(action: onBack) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(width: 38, height: 38)
+                                .background(AppTheme.menuIconBg)
+                                .clipShape(Circle())
+                        }
+                    } else {
+                        Button(action: { withAnimation { menuVisible = true } }) {
+                            Image(systemName: "line.3.horizontal")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(width: 38, height: 38)
+                                .background(AppTheme.menuIconBg)
+                                .clipShape(Circle())
+                        }
                     }
                     Spacer()
                 }

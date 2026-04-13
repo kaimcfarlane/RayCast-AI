@@ -4,10 +4,13 @@ struct MenuOverlayView: View {
     @Binding var isVisible: Bool
     var onPairGlasses: () -> Void = {}
     var onStartLiveSession: () -> Void = {}
+    var sessionHistory: [SessionRecord] = []
 
     @State private var dragOffset: CGFloat = 0
+    @State private var openDragOffset: CGFloat = 0
 
     private let drawerWidth: CGFloat = UIScreen.main.bounds.width * 0.8
+    private let edgeSwipeWidth: CGFloat = 24
 
     var body: some View {
         ZStack {
@@ -28,7 +31,7 @@ struct MenuOverlayView: View {
                             .foregroundColor(AppTheme.border),
                         alignment: .trailing
                     )
-                    .offset(x: isVisible ? dragOffset : -drawerWidth)
+                    .offset(x: isVisible ? dragOffset : -drawerWidth + max(0, openDragOffset))
                     .gesture(
                         DragGesture()
                             .onChanged { value in
@@ -45,6 +48,32 @@ struct MenuOverlayView: View {
                     )
 
                 Spacer()
+            }
+
+            if !isVisible {
+                HStack {
+                    Color.clear
+                        .frame(width: edgeSwipeWidth)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    if value.startLocation.x < edgeSwipeWidth && value.translation.width > 0 {
+                                        openDragOffset = min(value.translation.width, drawerWidth)
+                                    }
+                                }
+                                .onEnded { value in
+                                    if value.translation.width > 80 {
+                                        open()
+                                    }
+                                    withAnimation(.easeOut(duration: 0.2)) {
+                                        openDragOffset = 0
+                                    }
+                                }
+                        )
+                    Spacer()
+                }
+                .ignoresSafeArea()
             }
         }
         .animation(.easeInOut(duration: 0.3), value: isVisible)
@@ -74,54 +103,45 @@ struct MenuOverlayView: View {
                     close()
                     onStartLiveSession()
                 })
-                menuItem(icon: "bell", label: "Notifications", action: {})
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("HISTORY")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(AppTheme.textMuted)
-                    .tracking(0.5)
-                Text("You currently don't have any\nsessions with RayCast")
-                    .font(.system(size: 15))
-                    .foregroundColor(AppTheme.textSecondary)
-                    .lineSpacing(4)
-            }
-            .padding(.top, 48)
-            .overlay(
-                Rectangle()
-                    .frame(height: 1)
-                    .foregroundColor(AppTheme.border),
-                alignment: .top
-            )
-            .padding(.top, 48)
+            historySection
+                .padding(.top, 48)
+                .overlay(
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundColor(AppTheme.border),
+                    alignment: .top
+                )
+                .padding(.top, 48)
 
             Spacer()
-
-            HStack(spacing: 12) {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(.black)
-                    )
-                Text("User Account")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
-            }
-            .padding(.top, 24)
-            .overlay(
-                Rectangle()
-                    .frame(height: 1)
-                    .foregroundColor(AppTheme.border),
-                alignment: .top
-            )
         }
         .padding(.horizontal, 24)
         .padding(.top, 60)
         .padding(.bottom, 40)
+    }
+
+    private var historySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("RECENT SESSIONS")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(AppTheme.textMuted)
+                .tracking(0.5)
+
+            if sessionHistory.isEmpty {
+                Text("No sessions yet.\nStart a live session to see history here.")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppTheme.textSecondary)
+                    .lineSpacing(4)
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(sessionHistory.prefix(5)) { session in
+                        SessionRowView(session: session)
+                    }
+                }
+            }
+        }
     }
 
     private func menuItem(icon: String, label: String, action: @escaping () -> Void) -> some View {
@@ -143,5 +163,42 @@ struct MenuOverlayView: View {
         withAnimation(.easeInOut(duration: 0.25)) {
             isVisible = false
         }
+    }
+
+    private func open() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            isVisible = true
+        }
+    }
+}
+
+private struct SessionRowView: View {
+    let session: SessionRecord
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: session.taskMode.icon)
+                .font(.system(size: 14))
+                .foregroundColor(AppTheme.textSecondary)
+                .frame(width: 28, height: 28)
+                .background(AppTheme.surfaceElevated)
+                .clipShape(Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(session.taskMode.label)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppTheme.text)
+                Text(session.formattedDate)
+                    .font(.system(size: 12))
+                    .foregroundColor(AppTheme.textMuted)
+            }
+
+            Spacer()
+
+            Text("\(session.messageCount) msgs")
+                .font(.system(size: 12))
+                .foregroundColor(AppTheme.textMuted)
+        }
+        .padding(.vertical, 6)
     }
 }

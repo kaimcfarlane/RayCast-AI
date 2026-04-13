@@ -41,6 +41,7 @@
 		CAFE00B200000000DEADBEEF /* AudioPlayerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE00A200000000DEADBEEF /* AudioPlayerService.swift */; };
 		CAFE00B300000000DEADBEEF /* AnalysisOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE00A300000000DEADBEEF /* AnalysisOverlayView.swift */; };
 		CAFE00B400000000DEADBEEF /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE00A400000000DEADBEEF /* SpeechRecognitionService.swift */; };
+		CAFE00B500000000DEADBEEF /* SessionHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE00A500000000DEADBEEF /* SessionHistoryStore.swift */; };
 		E66D30242E7DA71900470B48 /* MockDeviceKitButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E66D30232E7DA71900470B48 /* MockDeviceKitButton.swift */; };
 		E6A188482EB918740097D0E1 /* StreamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A188472EB918740097D0E1 /* StreamView.swift */; };
 		E6DA451D2E79A63100E3F688 /* MockDeviceCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DA45182E79A63100E3F688 /* MockDeviceCardView.swift */; };
@@ -107,6 +108,7 @@
 		CAFE00A200000000DEADBEEF /* AudioPlayerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerService.swift; sourceTree = "<group>"; };
 		CAFE00A300000000DEADBEEF /* AnalysisOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisOverlayView.swift; sourceTree = "<group>"; };
 		CAFE00A400000000DEADBEEF /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionService.swift; sourceTree = "<group>"; };
+		CAFE00A500000000DEADBEEF /* SessionHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryStore.swift; sourceTree = "<group>"; };
 		E66D30232E7DA71900470B48 /* MockDeviceKitButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDeviceKitButton.swift; sourceTree = "<group>"; };
 		E699CC952E8150670052C240 /* CameraAccessTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CameraAccessTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6A188472EB918740097D0E1 /* StreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamView.swift; sourceTree = "<group>"; };
@@ -240,6 +242,7 @@
 				CAFE00A100000000DEADBEEF /* APIService.swift */,
 				CAFE00A200000000DEADBEEF /* AudioPlayerService.swift */,
 				CAFE00A400000000DEADBEEF /* SpeechRecognitionService.swift */,
+				CAFE00A500000000DEADBEEF /* SessionHistoryStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -396,6 +399,7 @@
 				CAFE00B200000000DEADBEEF /* AudioPlayerService.swift in Sources */,
 				CAFE00B300000000DEADBEEF /* AnalysisOverlayView.swift in Sources */,
 				CAFE00B400000000DEADBEEF /* SpeechRecognitionService.swift in Sources */,
+				CAFE00B500000000DEADBEEF /* SessionHistoryStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
