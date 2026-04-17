@@ -54,8 +54,11 @@ class StreamSessionViewModel: ObservableObject {
 
   // Talk mode state
   @Published var isTalkProcessing: Bool = false
+  /// Mic idle timeout paused the conversation; user taps mic to resume (does not affect the chat/reasoning pipeline).
+  @Published var conversationPausedForSilence: Bool = false
 
   let speechService = SpeechRecognitionService()
+  private var continuousDialogMicTask: Task<Void, Never>?
 
   var isTalkMode: Bool { taskMode == .general }
 
@@ -101,6 +104,16 @@ class StreamSessionViewModel: ObservableObject {
     streamSession = StreamSession(streamSessionConfig: config, deviceSelector: deviceSelector)
 
     frameBuffer.reserveCapacity(bufferCapacity)
+
+    speechService.onSilenceCommit = { [weak self] text in
+      Task { @MainActor in
+        await self?.handleTalkInput(text)
+      }
+    }
+
+    speechService.onExtendedSilenceWhileListening = { [weak self] in
+      self?.pauseConversationForExtendedSilence()
+    }
 
     deviceMonitorTask = Task { @MainActor in
       for await device in deviceSelector.activeDeviceStream() {
@@ -263,6 +276,9 @@ class StreamSessionViewModel: ObservableObject {
   }
 
   func stopSession() async {
+    continuousDialogMicTask?.cancel()
+    continuousDialogMicTask = nil
+    conversationPausedForSilence = false
     stopAnalysisLoop()
     speechService.stopListening()
     await streamSession.stop()
@@ -279,6 +295,12 @@ class StreamSessionViewModel: ObservableObject {
   func toggleListening() {
     guard isTalkMode, !isTalkProcessing, !audioPlayer.isPlaying else { return }
 
+    if conversationPausedForSilence {
+      conversationPausedForSilence = false
+      speechService.startListening()
+      return
+    }
+
     if speechService.isListening {
       speechService.stopListening()
       let text = speechService.getFinalText()
@@ -287,6 +309,24 @@ class StreamSessionViewModel: ObservableObject {
     } else {
       speechService.startListening()
     }
+  }
+
+  private func pauseConversationForExtendedSilence() {
+    conversationPausedForSilence = true
+  }
+
+  /// Reopens the mic after a completed turn. Runs only when the agent is idle (no in-flight chat, no TTS).
+  private func resumeListeningAfterTurnIfNeeded() async {
+    guard isTalkMode, streamingStatus == .streaming else { return }
+    guard !conversationPausedForSilence else { return }
+    guard !speechService.isListening else { return }
+    guard !audioPlayer.isPlaying else { return }
+    guard !isTalkProcessing, !isAnalyzing else { return }
+
+    try? await Task.sleep(for: .milliseconds(450))
+    guard isTalkMode, streamingStatus == .streaming, !conversationPausedForSilence else { return }
+    guard !isTalkProcessing, !isAnalyzing, !audioPlayer.isPlaying else { return }
+    speechService.startListening()
   }
 
   private func handleTalkInput(_ userText: String) async {
@@ -318,6 +358,13 @@ class StreamSessionViewModel: ObservableObject {
     } catch {
       print("[RayCastAI] Chat error: \(error.localizedDescription)")
       showStreamError(error.localizedDescription)
+      return
+    }
+
+    // Defer runs after this Task, so `isTalkProcessing` / `isAnalyzing` are still true here.
+    // Schedule resume so guards in `resumeListeningAfterTurnIfNeeded` see an idle agent.
+    Task { @MainActor [weak self] in
+      await self?.resumeListeningAfterTurnIfNeeded()
     }
   }
 
@@ -363,15 +410,36 @@ class StreamSessionViewModel: ObservableObject {
   private func updateStatusFromState(_ state: StreamSessionState) {
     switch state {
     case .stopped:
+      continuousDialogMicTask?.cancel()
+      continuousDialogMicTask = nil
+      conversationPausedForSilence = false
       currentVideoFrame = nil
       streamingStatus = .stopped
       stopAnalysisLoop()
     case .waitingForDevice, .starting, .stopping, .paused:
+      continuousDialogMicTask?.cancel()
+      continuousDialogMicTask = nil
       streamingStatus = .waiting
     case .streaming:
       streamingStatus = .streaming
       startAnalysisLoop()
+      if isTalkMode {
+        continuousDialogMicTask?.cancel()
+        continuousDialogMicTask = Task { @MainActor [weak self] in
+          await self?.scheduleInitialTalkMicIfNeeded()
+        }
+      }
     }
+  }
+
+  /// Opens the mic once streaming is live in talk mode (continuous dialog). Skipped if user already paused for silence.
+  private func scheduleInitialTalkMicIfNeeded() async {
+    try? await Task.sleep(for: .milliseconds(800))
+    guard isTalkMode, streamingStatus == .streaming else { return }
+    guard !conversationPausedForSilence else { return }
+    guard !isTalkProcessing, !isAnalyzing, !audioPlayer.isPlaying else { return }
+    guard !speechService.isListening else { return }
+    speechService.startListening()
   }
 
   private func formatStreamingError(_ error: StreamSessionError) -> String {

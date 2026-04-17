@@ -39,36 +39,44 @@ struct StreamView: View {
             if showStoppedOverlay {
                 stoppedOverlay
             } else {
-                VStack(spacing: 0) {
-                    HStack(alignment: .top) {
-                        taskModeBadge
-                        Spacer()
-                    }
+                GeometryReader { geo in
+                    let overlayMaxHeight = min(geo.size.height * 0.44, 360)
 
-                    if let error = viewModel.streamError {
-                        ErrorBannerView(message: error)
-                            .padding(.top, 4)
-                    }
-
-                    Spacer()
-
-                    AnalysisOverlayView(
-                        messages: viewModel.analysisMessages,
-                        isAnalyzing: viewModel.isAnalyzing,
-                        taskMode: viewModel.taskMode,
-                        isListening: viewModel.speechService.isListening,
-                        partialTranscript: viewModel.speechService.transcribedText,
-                        streamError: viewModel.streamError
-                    )
-
-                    ControlsView(viewModel: viewModel) {
-                        Task {
-                            await viewModel.stopSession()
-                            withAnimation { showStoppedOverlay = true }
+                    VStack(spacing: 0) {
+                        HStack(alignment: .top) {
+                            taskModeBadge
+                            Spacer()
                         }
+
+                        if let error = viewModel.streamError {
+                            ErrorBannerView(message: error)
+                                .padding(.top, 4)
+                        }
+
+                        Spacer(minLength: 0)
+
+                        AnalysisOverlayView(
+                            messages: viewModel.analysisMessages,
+                            isAnalyzing: viewModel.isAnalyzing,
+                            taskMode: viewModel.taskMode,
+                            isListening: viewModel.speechService.isListening,
+                            partialTranscript: viewModel.speechService.transcribedText,
+                            streamError: viewModel.streamError,
+                            conversationPausedForSilence: viewModel.conversationPausedForSilence
+                        )
+                        .frame(maxHeight: overlayMaxHeight, alignment: .bottom)
+
+                        ControlsView(viewModel: viewModel) {
+                            Task {
+                                await viewModel.stopSession()
+                                withAnimation { showStoppedOverlay = true }
+                            }
+                        }
+                        .padding(.top, 12)
                     }
+                    .padding(.all, 24)
+                    .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
                 }
-                .padding(.all, 24)
                 .animation(.easeInOut(duration: 0.3), value: viewModel.streamError)
             }
         }

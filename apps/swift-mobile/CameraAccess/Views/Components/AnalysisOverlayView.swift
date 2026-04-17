@@ -7,6 +7,7 @@ struct AnalysisOverlayView: View {
     var isListening: Bool = false
     var partialTranscript: String = ""
     var streamError: String? = nil
+    var conversationPausedForSilence: Bool = false
 
     private var visibleMessages: [AnalysisMessage] {
         Array(messages.suffix(3))
@@ -18,27 +19,45 @@ struct AnalysisOverlayView: View {
                 analysingIndicator
             }
 
-            if isListening {
+            if conversationPausedForSilence && !isListening {
+                pausedConversationBanner
+            } else if isListening {
                 listeningIndicator
             }
 
-            ForEach(Array(visibleMessages.enumerated()), id: \.element.id) { index, message in
-                let opacity = messageOpacity(index: index, total: visibleMessages.count)
-                MessageBubbleView(
-                    text: message.text,
-                    timestamp: message.timestamp,
-                    sender: message.sender
-                )
-                .opacity(opacity)
-                .transition(.asymmetric(
-                    insertion: .move(edge: .bottom).combined(with: .opacity),
-                    removal: .opacity
-                ))
+            ScrollViewReader { proxy in
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(Array(visibleMessages.enumerated()), id: \.element.id) { index, message in
+                            let opacity = messageOpacity(index: index, total: visibleMessages.count)
+                            MessageBubbleView(
+                                text: message.text,
+                                timestamp: message.timestamp,
+                                sender: message.sender
+                            )
+                            .opacity(opacity)
+                            .id(message.id)
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .bottom).combined(with: .opacity),
+                                removal: .opacity
+                            ))
+                        }
+                    }
+                }
+                .onChange(of: messages.count) { _, _ in
+                    if let last = visibleMessages.last {
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            proxy.scrollTo(last.id, anchor: .bottom)
+                        }
+                    }
+                }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
         .animation(.easeInOut(duration: 0.3), value: messages.count)
+        .animation(.easeInOut(duration: 0.25), value: conversationPausedForSilence)
     }
 
     private var analysingIndicator: some View {
@@ -56,6 +75,27 @@ struct AnalysisOverlayView: View {
         .clipShape(Capsule())
     }
 
+    private var pausedConversationBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "pause.circle.fill")
+                .font(.system(size: 14))
+                .foregroundColor(.white.opacity(0.85))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Conversation paused")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white.opacity(0.85))
+                Text("Tap the mic when you're ready to continue")
+                    .font(.system(size: 10))
+                    .foregroundColor(.white.opacity(0.45))
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color.black.opacity(0.45))
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
     private var listeningIndicator: some View {
         HStack(spacing: 8) {
             PulsingMicDot()
@@ -63,6 +103,9 @@ struct AnalysisOverlayView: View {
                 Text("Listening...")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.white.opacity(0.8))
+                Text("Pause briefly to send, or tap the mic")
+                    .font(.system(size: 10))
+                    .foregroundColor(.white.opacity(0.45))
                 if !partialTranscript.isEmpty {
                     Text(partialTranscript)
                         .font(.system(size: 11))

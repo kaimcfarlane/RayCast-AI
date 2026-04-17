@@ -8,10 +8,25 @@ final class SpeechRecognitionService: ObservableObject {
     @Published private(set) var isListening: Bool = false
     @Published private(set) var isAuthorized: Bool = false
 
+    /// After this much quiet time following the last partial transcript, we treat the utterance as complete.
+    var silenceCommitDuration: TimeInterval = 1.85
+
+    /// If the mic is open but the user says nothing (no non-empty partials) for this long, we notify and stop.
+    /// Resets whenever a non-empty partial transcript arrives (user is still engaged).
+    var extendedIdlePauseDuration: TimeInterval = 28
+
+    /// Called on the main actor when the user pauses long enough after speaking (end of utterance).
+    var onSilenceCommit: ((String) -> Void)?
+
+    /// Called when the mic has been open with no meaningful speech for `extendedIdlePauseDuration` (conversation idle).
+    var onExtendedSilenceWhileListening: (() -> Void)?
+
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
     private let audioEngine = AVAudioEngine()
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
+    private var silenceCommitTask: Task<Void, Never>?
+    private var extendedIdleTask: Task<Void, Never>?
 
     init() {
         checkAuthorization()
@@ -34,6 +49,8 @@ final class SpeechRecognitionService: ObservableObject {
 
         stopListening()
         transcribedText = ""
+        cancelSilenceCommitTimer()
+        cancelExtendedIdleTimer()
 
         let audioSession = AVAudioSession.sharedInstance()
         do {
@@ -61,12 +78,17 @@ final class SpeechRecognitionService: ObservableObject {
             Task { @MainActor in
                 guard let self else { return }
                 if let result {
-                    self.transcribedText = result.bestTranscription.formattedString
-                }
-                if error != nil || (result?.isFinal == true) {
-                    if self.isListening {
-                        self.finishListening()
+                    let formatted = result.bestTranscription.formattedString
+                    self.transcribedText = formatted
+                    self.scheduleSilenceCommitIfNeeded()
+                    if !formatted.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        self.scheduleExtendedIdleTimer()
                     }
+                }
+                // Do not stop on `isFinal` alone — that fires between phrases and caused constant listen/stop toggling.
+                // Rely on silence detection, explicit stop, or a hard error instead.
+                if error != nil, self.isListening {
+                    self.finishListening()
                 }
             }
         }
@@ -74,6 +96,7 @@ final class SpeechRecognitionService: ObservableObject {
         do {
             try audioEngine.start()
             isListening = true
+            scheduleExtendedIdleTimer()
         } catch {
             print("[RayCastAI] Audio engine start failed: \(error)")
             finishListening()
@@ -82,6 +105,8 @@ final class SpeechRecognitionService: ObservableObject {
 
     func stopListening() {
         guard isListening else { return }
+        cancelSilenceCommitTimer()
+        cancelExtendedIdleTimer()
         finishListening()
     }
 
@@ -90,6 +115,8 @@ final class SpeechRecognitionService: ObservableObject {
     }
 
     private func finishListening() {
+        cancelSilenceCommitTimer()
+        cancelExtendedIdleTimer()
         audioEngine.stop()
         audioEngine.inputNode.removeTap(onBus: 0)
         recognitionRequest?.endAudio()
@@ -101,5 +128,39 @@ final class SpeechRecognitionService: ObservableObject {
         let audioSession = AVAudioSession.sharedInstance()
         try? audioSession.setCategory(.playback, mode: .spokenAudio, options: .duckOthers)
         try? audioSession.setActive(true)
+    }
+
+    private func cancelSilenceCommitTimer() {
+        silenceCommitTask?.cancel()
+        silenceCommitTask = nil
+    }
+
+    private func scheduleSilenceCommitIfNeeded() {
+        cancelSilenceCommitTimer()
+        silenceCommitTask = Task { @MainActor in
+            let nanos = UInt64(silenceCommitDuration * 1_000_000_000)
+            try? await Task.sleep(nanoseconds: nanos)
+            guard !Task.isCancelled, self.isListening else { return }
+            let text = self.getFinalText()
+            guard !text.isEmpty else { return }
+            self.onSilenceCommit?(text)
+            self.finishListening()
+        }
+    }
+
+    private func scheduleExtendedIdleTimer() {
+        cancelExtendedIdleTimer()
+        extendedIdleTask = Task { @MainActor in
+            let nanos = UInt64(extendedIdlePauseDuration * 1_000_000_000)
+            try? await Task.sleep(nanoseconds: nanos)
+            guard !Task.isCancelled, self.isListening else { return }
+            self.onExtendedSilenceWhileListening?()
+            self.finishListening()
+        }
+    }
+
+    private func cancelExtendedIdleTimer() {
+        extendedIdleTask?.cancel()
+        extendedIdleTask = nil
     }
 }
