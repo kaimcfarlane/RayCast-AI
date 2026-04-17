@@ -4,6 +4,7 @@
 # Environment files
 .env
 .env*.local
+backend/raycast-mvp/.env
 
 # macOS
 .DS_Store
