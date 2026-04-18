@@ -1,0 +1,60 @@
+from pydantic import BaseModel
+from typing import Optional
+
+class ObjectLabel(BaseModel):
+    label: str
+    count: int
+
+class TextInScene(BaseModel):
+    text: str
+    confidence: float
+
+class SceneDescription(BaseModel):
+    scene_summary: str
+    objects: list[ObjectLabel]
+    text_in_scene: list[TextInScene]
+    key_details: list[str]
+    uncertainties: list[str]
+
+class StorageUrls(BaseModel):
+    video_url: Optional[str] = None
+    audio_url: Optional[str] = None
+    frame_urls: list[str] = []
+    packet_url: Optional[str] = None
+
+class ContextPacket(BaseModel):
+    session_id: str
+    source_type: str
+    video_file_name: str
+    frame_interval: int
+    timestamp: str
+    scene: SceneDescription
+    transcript: str
+
+
+class StreamAnalysisResponse(BaseModel):
+    session_id: str
+    changed: bool
+    scene: SceneDescription | None = None
+    analysis_text: str | None = None
+    audio_base64: str | None = None
+    task_mode: str
+    timestamp: str
+    storage: Optional[StorageUrls] = None
+
+class ChatResponse(BaseModel):
+    session_id: str
+    response_text: str
+    audio_base64: str | None = None
+    timestamp: str
+
+
+class ChunkPacket(BaseModel):
+    session_id: str
+    chunk_index: int
+    source_type: str
+    timestamp: str
+    scene: SceneDescription
+    transcript: str
+    storage: Optional[StorageUrls] = None
+

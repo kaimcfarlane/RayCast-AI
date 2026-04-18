@@ -1,0 +1,10 @@
+# https://render.com/docs/blueprint-spec
+# Monorepo: Python API lives under backend/raycast-mvp
+services:
+  - type: web
+    name: raycastai-testserver
+    runtime: python
+    rootDir: backend/raycast-mvp
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:server --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
