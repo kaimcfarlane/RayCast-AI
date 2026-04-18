@@ -326,18 +326,6 @@ OpenAI is **mocked** in tests; no network required. Optional live prompt checks:
 
 ---
 
-## License and third-party notices
-
-This repository does not currently include a root-level `LICENSE` file. Components may be subject to:
-
-- **Meta** sample code and Wearables SDK terms.
-- **OpenAI** API terms of use for model access.
-- **Expo** / **Next.js** / **Swift** toolchain licenses.
-
-Add a project-wide `LICENSE` and per-package notices as appropriate before public distribution.
-
----
-
 ## Team
 
 | Name | Focus |
