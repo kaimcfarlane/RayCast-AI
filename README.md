@@ -25,7 +25,6 @@
 - [Development workflow](#development-workflow)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
-- [License and third-party notices](#license-and-third-party-notices)
 
 ---
 
